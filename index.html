@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PFT Safety Portal</title>
+<meta name="theme-color" content="#0a0c10">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151b;
+    --surface-raised: #171b23;
+    --border: #1f2530;
+    --border-hover: #2a3140;
+    --text-primary: #e8eaed;
+    --text-secondary: #8b93a1;
+    --text-muted: #5a6270;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-dim: rgba(59, 130, 246, 0.12);
+    --danger: #ef4444;
+    --danger-dim: rgba(239, 68, 68, 0.12);
+    --success: #22c55e;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  a { color: inherit; }
+  button { font-family: inherit; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10, 12, 16, 0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .brand-text strong {
+    font-size: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  .brand-text span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .session-chip {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .session-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-logout:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+  /* ---------- Login view ---------- */
+  #login-view {
+    min-height: calc(100vh - 73px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+  }
+
+  .login-card h1 {
+    font-size: 17px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .login-card .sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 12px;
+  }
+
+  .remember-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .remember-row a {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .remember-row a:hover { text-decoration: underline; }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .form-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .form-msg.error { display: block; background: var(--danger-dim); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .form-msg.info { display: block; background: var(--accent-dim); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+  .signup-row {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .signup-row a { color: var(--accent); text-decoration: none; cursor: pointer; }
+  .signup-row a:hover { text-decoration: underline; }
+
+  /* ---------- Launcher view ---------- */
+  #app-view { display: none; }
+
+  .launcher-header {
+    padding: 40px 28px 8px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .launcher-header h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .launcher-header p {
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin: 0;
+  }
+
+  .stat-strip {
+    max-width: 1080px;
+    margin: 20px auto 0;
+    padding: 0 28px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    min-width: 160px;
+    flex: 1;
+  }
+
+  .stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-card .value {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    color: var(--success);
+    font-weight: 600;
+  }
+
+  .app-grid {
+    max-width: 1080px;
+    margin: 28px auto 60px;
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .app-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-decoration: none;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: border-color 0.15s, transform 0.15s, background 0.15s;
+  }
+
+  .app-tile:hover {
+    border-color: var(--accent);
+    background: var(--surface-raised);
+    transform: translateY(-2px);
+  }
+
+  .app-tile .icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .app-tile .icon svg { width: 19px; height: 19px; }
+
+  .app-tile .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .app-tile .desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: -8px;
+  }
+
+  .admin-link {
+    max-width: 1080px;
+    margin: 0 auto 40px;
+    padding: 0 28px;
+  }
+
+  .admin-link a {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border-hover);
+  }
+  .admin-link a:hover { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <strong>PFT SAFETY</strong>
+        <span>Peroorkada Factory</span>
+      </div>
+    </div>
+    <div class="session-chip" id="session-chip">
+      <span class="dot"></span>
+      <span id="session-username">—</span>
+      <button class="btn-logout" id="btn-logout">Log out</button>
+    </div>
+  </div>
+
+  <!-- ============ LOGIN VIEW ============ -->
+  <div id="login-view">
+    <div class="login-card">
+      <h1>Sign in</h1>
+      <p class="sub">Enter your username and PIN to continue.</p>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-pin">PIN</label>
+          <input type="password" id="login-pin" inputmode="numeric" autocomplete="current-password" required>
+        </div>
+        <div class="remember-row">
+          <label><input type="checkbox" id="login-remember"> Remember me</label>
+          <a id="forgot-pin-link">Forgot PIN?</a>
+        </div>
+        <button type="submit" class="btn-primary" id="login-submit">Sign in</button>
+        <div class="form-msg" id="login-msg"></div>
+      </form>
+
+      <div class="signup-row">
+        No account yet? <a id="signup-link">Request access</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LAUNCHER VIEW ============ -->
+  <div id="app-view">
+    <div class="launcher-header">
+      <h1>Safety systems</h1>
+      <p>Select an application to continue.</p>
+    </div>
+
+    <div class="stat-strip" id="stat-strip"></div>
+
+    <div class="app-grid" id="app-grid"></div>
+
+    <div class="admin-link" id="admin-link" style="display:none;">
+      <a href="admin.html">Admin panel →</a>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
+    const API_URL = PFT_CONFIG.API_URL;
+
+    const APPS = [
+      { name: 'PPE Issue', desc: 'Issue and track personal protective equipment', url: 'https://pftsafety.github.io/PPE-Issue/',
+        icon: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>' },
+      { name: 'PTW Scanner', desc: 'Scan and validate permit-to-work QR codes', url: 'https://pftsafety.github.io/PTW_Scanner/',
+        icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/>' },
+      { name: 'Safety Shoe Issue', desc: 'Track safety footwear issuance', url: 'https://pftsafety.github.io/Safety-Shoe-Issue/',
+        icon: '<path d="M4 17v-3c0-1 1-2 2-2l4-3 3 2h5a2 2 0 0 1 2 2v1c0 2-2 3-4 3H6a2 2 0 0 1-2-2Z"/>' },
+      { name: 'PR Tracker', desc: 'Track purchase requests through approval stages', url: 'https://pftsafety.github.io/PR-Tracker/',
+        icon: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>' },
+      { name: 'Fire Extinguishers', desc: 'Manage extinguisher inspections and AMC data', url: 'https://pftsafety.github.io/Fire-Extinguishers/',
+        icon: '<path d="M12 3v4M8 7h8l-1 3H9L8 7Z"/><path d="M9 10v9a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9"/>' },
+      { name: 'AITR', desc: 'Accident and incident investigation reports', url: 'https://pftsafety.github.io/AITR/',
+        icon: '<path d="M12 4 2 20h20L12 4Z"/><path d="M12 10v4M12 17h.01"/>' },
+      { name: 'Injury Analysis', desc: 'Dashboard of repeat incidents and watchlist', url: 'https://pftsafety.github.io/Injury-Analysis/',
+        icon: '<path d="M4 20V10M11 20V4M18 20v-7"/>' },
+      { name: 'Nearmiss', desc: 'Log and review near-miss occurrences', url: 'https://pftsafety.github.io/Nearmiss/',
+        icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>' }
+    ];
+
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+
+    function setSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+    async function api(action, payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action }, payload))
+      });
+      return res.json();
+    }
+
+    function showLogin(message) {
+      document.getElementById('login-view').style.display = 'flex';
+      document.getElementById('app-view').style.display = 'none';
+      document.getElementById('session-chip').style.display = 'none';
+      if (message) {
+        const msg = document.getElementById('login-msg');
+        msg.className = 'form-msg info';
+        msg.textContent = message;
+      }
+    }
+
+    function renderLauncher(user) {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app-view').style.display = 'block';
+      document.getElementById('session-chip').style.display = 'flex';
+      document.getElementById('session-username').textContent = user.username;
+      document.getElementById('admin-link').style.display = user.role === 'admin' ? 'block' : 'none';
+
+      const grid = document.getElementById('app-grid');
+      grid.innerHTML = APPS.map(app => `
+        <a class="app-tile" href="${app.url}">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${app.icon}</svg></div>
+          <div class="name">${app.name}</div>
+          <div class="desc">${app.desc}</div>
+        </a>
+      `).join('');
+
+      api('getSettings', {}).then(res => {
+        if (!res.ok) return;
+        const s = res.settings || {};
+        const strip = document.getElementById('stat-strip');
+        const cards = [];
+        if (s.accidentFreeManHours) cards.push(['Accident-free man-hours', s.accidentFreeManHours]);
+        if (s.accidentFreeDays) cards.push(['Accident-free days', s.accidentFreeDays]);
+        strip.innerHTML = cards.map(([label, value]) => `
+          <div class="stat-card">
+            <div class="label">${label}</div>
+            <div class="value">${value}</div>
+          </div>
+        `).join('');
+      });
+    }
+
+    async function init() {
+      const session = getSession();
+      if (!session || !session.token) { showLogin(); return; }
+
+      const params = new URLSearchParams(location.search);
+      const check = await api('validateSession', { token: session.token });
+      if (!check.ok) {
+        clearSession();
+        showLogin('Your session expired. Please sign in again.');
+        return;
+      }
+
+      // If arrived here via a redirect from a sub-app, send them straight back.
+      const redirect = params.get('redirect');
+      if (redirect) { location.href = redirect; return; }
+
+      renderLauncher({ username: check.username, role: check.role });
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const pin = document.getElementById('login-pin').value;
+      const remember = document.getElementById('login-remember').checked;
+      const submitBtn = document.getElementById('login-submit');
+      const msg = document.getElementById('login-msg');
+      msg.className = 'form-msg';
+      msg.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+
+      try {
+        const res = await api('login', { username, pin, remember });
+        if (!res.ok) {
+          msg.className = 'form-msg error';
+          msg.textContent = res.error || 'Sign in failed.';
+          return;
+        }
+        setSession({ token: res.token, username: res.username, role: res.role, expiresAt: res.expiresAt });
+
+        if (res.forcePinChange) {
+          location.href = 'change-pin.html';
+          return;
+        }
+
+        const params = new URLSearchParams(location.search);
+        const redirect = params.get('redirect');
+        if (redirect) { location.href = redirect; return; }
+        renderLauncher({ username: res.username, role: res.role });
+      } catch (err) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Could not reach the server. Check your connection.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      const session = getSession();
+      if (session) await api('logout', { token: session.token });
+      clearSession();
+      showLogin();
+    });
+
+    document.getElementById('forgot-pin-link').addEventListener('click', async () => {
+      const username = prompt('Enter your username to request a PIN reset:');
+      if (!username) return;
+      const res = await api('forgotPinRequest', { username });
+      alert(res.message || 'Request submitted.');
+    });
+
+    document.getElementById('signup-link').addEventListener('click', () => {
+      location.href = 'signup.html';
+    });
+
+    init();
+  </script>
+</body>
+</html>
