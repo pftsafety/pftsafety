@@ -8,6 +8,6 @@
  */
 window.PFT_CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbxbsW36PywwGO0Odybb7hCwPbGI4CoZS2wX3rzAdvQesoeD0ASmWiVjjJLfYda376es/exec',
-  PORTAL_URL: 'https://pftsafety.github.io/Portal/',
+  PORTAL_URL: 'https://pftsafety.github.io/pftsafety/',
   SESSION_KEY: 'pft_session'
 };
