@@ -802,11 +802,19 @@
       }
     });
 
-    document.getElementById('btn-logout').addEventListener('click', async () => {
+    document.getElementById('btn-logout').addEventListener('click', () => {
       const session = getSession();
-      if (session) await api('logout', { token: session.token });
       clearSession();
       showLogin();
+      // Invalidate the server-side token in the background — the user is
+      // already back at the login screen, no need to wait for this.
+      if (session && session.token) {
+        fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'logout', token: session.token })
+        }).catch(() => {});
+      }
     });
 
     document.getElementById('pin-toggle').addEventListener('click', () => {
