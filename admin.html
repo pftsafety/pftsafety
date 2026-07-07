@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — PFT Safety Portal</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f3f5f9;
+    --surface: #ffffff;
+    --surface-raised: #f8f9fc;
+    --border: #e2e5ea;
+    --border-hover: #c7cdd6;
+    --text-primary: #16213d;
+    --text-secondary: #5b6472;
+    --text-muted: #8892a0;
+    --accent: #2f74f5;
+    --accent-hover: #1d5fdb;
+    --accent-dim: rgba(47, 116, 245, 0.10);
+    --navy: #12244a;
+    --navy-hover: #0d1c3a;
+    --danger: #dc2626;
+    --danger-dim: rgba(220, 38, 38, 0.08);
+    --success: #16a34a;
+    --success-dim: rgba(22, 163, 74, 0.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    padding-top: max(18px, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .topbar .title { font-size: 15px; font-weight: 600; }
+  .topbar .back { font-size: 13px; color: var(--text-muted); text-decoration: none; }
+  .topbar .back:hover { color: var(--text-secondary); }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-family: inherit;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+
+  .panel { display: none; max-width: 760px; margin: 0 auto; padding: 24px; }
+  .panel.active { display: block; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-head h2 { font-size: 15px; margin: 0; }
+
+  .btn-primary {
+    background: var(--navy);
+    border: none;
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 38px;
+  }
+  .btn-primary:hover { background: var(--navy-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    color: #b91c1c;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .btn-danger:hover { background: var(--danger-dim); }
+
+  .app-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-row.disabled { opacity: 0.5; }
+
+  .app-row .icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--accent-dim); border: 1px solid rgba(59,130,246,0.35);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); flex-shrink: 0;
+  }
+  .app-row .icon svg { width: 17px; height: 17px; }
+
+  .app-row .info { flex: 1; min-width: 0; }
+  .app-row .info .name { font-size: 13.5px; font-weight: 600; }
+  .app-row .info .url { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .app-row .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
+    width: 30px; height: 30px; border-radius: var(--radius-sm); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .form-card.active { display: block; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+
+  .form-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  .form-msg {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+  }
+  .form-msg.error { display: block; background: var(--danger-dim); color: #b91c1c; border: 1px solid rgba(220, 38, 38, 0.3); }
+  .form-msg.success { display: block; background: var(--success-dim); color: #15803d; border: 1px solid rgba(22, 163, 74, 0.3); }
+
+  .pending-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pending-row .info .name { font-size: 13.5px; font-weight: 600; }
+  .pending-row .info .meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .pending-row .actions { display: flex; gap: 8px; }
+
+  .empty-state { color: var(--text-muted); font-size: 13px; text-align: center; padding: 32px 0; }
+
+  .user-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .user-row .top-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .user-row .username { font-size: 13.5px; font-weight: 600; }
+  .user-row .meta { font-size: 11.5px; color: var(--text-muted); margin-bottom: 10px; }
+
+  .badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .badge-admin { background: var(--accent-dim); color: #1d4ed8; border: 1px solid rgba(47,116,245,0.3); }
+  .badge-user { background: rgba(91,100,114,0.08); color: var(--text-secondary); border: 1px solid var(--border); }
+  .badge-active { background: var(--success-dim); color: #15803d; border: 1px solid rgba(22,163,74,0.3); }
+  .badge-disabled { background: var(--danger-dim); color: #b91c1c; border: 1px solid rgba(220,38,38,0.3); }
+  .badge-warn { background: rgba(217,119,6,0.10); color: #92400e; border: 1px solid rgba(217,119,6,0.3); }
+
+  .user-row .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="title">Admin</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a class="back" href="index.html">← Back to launcher</a>
+      <button class="btn-ghost" id="admin-logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="apps">App links</button>
+    <button class="tab-btn" data-tab="pending">Pending signups</button>
+    <button class="tab-btn" data-tab="users">Users</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- ============ APP LINKS ============ -->
+  <div class="panel active" id="panel-apps">
+    <div class="section-head">
+      <h2>Launcher app links</h2>
+      <button class="btn-primary" id="show-add-app">+ Add app</button>
+    </div>
+
+    <div class="form-card" id="app-form-card">
+      <div class="field">
+        <label for="app-name">Name</label>
+        <input type="text" id="app-name" placeholder="e.g. PPE Issue">
+      </div>
+      <div class="field">
+        <label for="app-desc">Description</label>
+        <input type="text" id="app-desc" placeholder="Shown under the name on the tile">
+      </div>
+      <div class="field">
+        <label for="app-url">URL</label>
+        <input type="text" id="app-url" placeholder="https://pftsafety.github.io/Repo-Name/">
+      </div>
+      <div class="field">
+        <label for="app-icon">Icon</label>
+        <select id="app-icon">
+          <option value="shield">Shield</option>
+          <option value="qr">QR / Scanner</option>
+          <option value="boot">Boot</option>
+          <option value="clipboard">Clipboard</option>
+          <option value="extinguisher">Extinguisher</option>
+          <option value="triangle">Alert triangle</option>
+          <option value="chart">Chart</option>
+          <option value="circle-alert">Alert circle</option>
+          <option value="gear">Gear</option>
+          <option value="folder">Folder</option>
+          <option value="users">Users</option>
+          <option value="link">Generic link</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="save-app-btn">Save</button>
+        <button class="btn-ghost" id="cancel-app-btn">Cancel</button>
+      </div>
+      <div class="form-msg" id="app-form-msg"></div>
+    </div>
+
+    <div id="apps-list">
+      <p class="empty-state">Loading…</p>
+    </div>
+  </div>
+
+  <!-- ============ PENDING SIGNUPS ============ -->
+  <div class="panel" id="panel-pending">
+    <div class="section-head">
+      <h2>Pending signups</h2>
+    </div>
+    <div id="pending-list">
+      <p class="empty-state">Loading…</p>
+    </div>
+  </div>
+
+  <!-- ============ USERS ============ -->
+  <div class="panel" id="panel-users">
+    <div class="section-head">
+      <h2>Users</h2>
+    </div>
+    <div id="users-list">
+      <p class="empty-state">Loading…</p>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="panel" id="panel-settings">
+    <div class="section-head">
+      <h2>Dashboard stats</h2>
+    </div>
+    <div class="form-card active">
+      <div class="field">
+        <label for="settings-manhours">Accident-free man-hours</label>
+        <input type="text" id="settings-manhours" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="settings-days">Accident-free days</label>
+        <input type="text" id="settings-days" inputmode="numeric">
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="save-settings-btn">Save</button>
+      </div>
+      <div class="form-msg" id="settings-msg"></div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
+    const API_URL = PFT_CONFIG.API_URL;
+
+    const ICONS = {
+      shield: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>',
+      qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/>',
+      boot: '<path d="M4 17v-3c0-1 1-2 2-2l4-3 3 2h5a2 2 0 0 1 2 2v1c0 2-2 3-4 3H6a2 2 0 0 1-2-2Z"/>',
+      clipboard: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+      extinguisher: '<path d="M12 3v4M8 7h8l-1 3H9L8 7Z"/><path d="M9 10v9a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9"/>',
+      triangle: '<path d="M12 4 2 20h20L12 4Z"/><path d="M12 10v4M12 17h.01"/>',
+      chart: '<path d="M4 20V10M11 20V4M18 20v-7"/>',
+      'circle-alert': '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+      link: '<path d="M9 15 15 9"/><path d="M10 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M14 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
+      gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+      folder: '<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>',
+      users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 9a3 3 0 0 1 0 6"/><path d="M21 20a5.5 5.5 0 0 0-4-5.3"/>'
+    };
+
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+
+    async function api(action, payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action }, payload))
+      });
+      return res.json();
+    }
+
+    const session = getSession();
+    let TOKEN = session ? session.token : null;
+    let CURRENT_ADMIN = null;
+
+    // ---------- Auth gate ----------
+    async function requireAdmin() {
+      if (!TOKEN) { location.href = 'index.html'; return false; }
+      const check = await api('validateSession', { token: TOKEN });
+      if (!check.ok || check.role !== 'admin') {
+        location.href = 'index.html';
+        return false;
+      }
+      CURRENT_ADMIN = check.username;
+      return true;
+    }
+
+    // ---------- Tabs ----------
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ---------- App links ----------
+    let editingAppId = null;
+
+    function iconSvg(key) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[key] || ICONS.link}</svg>`;
+    }
+
+    async function loadApps() {
+      const list = document.getElementById('apps-list');
+      const res = await api('getAppsAdmin', { token: TOKEN });
+      if (!res.ok) {
+        list.innerHTML = `<p class="empty-state">${res.error || 'Could not load apps.'}</p>`;
+        return;
+      }
+      if (!res.apps.length) {
+        list.innerHTML = '<p class="empty-state">No apps yet. Add one above.</p>';
+        return;
+      }
+      list.innerHTML = res.apps.map((app, i) => `
+        <div class="app-row ${app.enabled ? '' : 'disabled'}" data-id="${app.id}">
+          <div class="icon">${iconSvg(app.icon)}</div>
+          <div class="info">
+            <div class="name">${app.name}</div>
+            <div class="url">${app.url}</div>
+          </div>
+          <div class="actions">
+            <button class="icon-btn" data-action="up" data-id="${app.id}" title="Move up" ${i === 0 ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+            <button class="icon-btn" data-action="down" data-id="${app.id}" title="Move down" ${i === res.apps.length - 1 ? 'disabled' : ''}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+            </button>
+            <button class="btn-ghost" data-action="toggle" data-id="${app.id}" data-enabled="${app.enabled}">${app.enabled ? 'Disable' : 'Enable'}</button>
+            <button class="btn-ghost" data-action="edit" data-id="${app.id}">Edit</button>
+            <button class="btn-danger" data-action="delete" data-id="${app.id}">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      window._appsCache = res.apps;
+    }
+
+    function showAppForm(app) {
+      editingAppId = app ? app.id : null;
+      document.getElementById('app-form-card').classList.add('active');
+      document.getElementById('app-name').value = app ? app.name : '';
+      document.getElementById('app-desc').value = app ? app.description : '';
+      document.getElementById('app-url').value = app ? app.url : '';
+      document.getElementById('app-icon').value = app ? app.icon : 'link';
+      document.getElementById('app-form-msg').className = 'form-msg';
+      document.getElementById('app-form-msg').textContent = '';
+    }
+
+    function hideAppForm() {
+      document.getElementById('app-form-card').classList.remove('active');
+      editingAppId = null;
+    }
+
+    document.getElementById('show-add-app').addEventListener('click', () => showAppForm(null));
+    document.getElementById('cancel-app-btn').addEventListener('click', hideAppForm);
+
+    document.getElementById('save-app-btn').addEventListener('click', async () => {
+      const name = document.getElementById('app-name').value.trim();
+      const description = document.getElementById('app-desc').value.trim();
+      const url = document.getElementById('app-url').value.trim();
+      const icon = document.getElementById('app-icon').value;
+      const msg = document.getElementById('app-form-msg');
+      msg.className = 'form-msg';
+
+      if (!name || !url) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Name and URL are required.';
+        return;
+      }
+
+      const res = editingAppId
+        ? await api('updateApp', { token: TOKEN, id: editingAppId, name, description, url, icon })
+        : await api('addApp', { token: TOKEN, name, description, url, icon });
+
+      if (!res.ok) {
+        msg.className = 'form-msg error';
+        msg.textContent = res.error || 'Could not save.';
+        return;
+      }
+
+      hideAppForm();
+      loadApps();
+    });
+
+    document.getElementById('apps-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      const apps = window._appsCache || [];
+
+      if (action === 'edit') {
+        showAppForm(apps.find(a => a.id === id));
+        return;
+      }
+      if (action === 'delete') {
+        if (!confirm('Delete this app link?')) return;
+        await api('deleteApp', { token: TOKEN, id });
+        loadApps();
+        return;
+      }
+      if (action === 'toggle') {
+        const enabled = btn.dataset.enabled === 'true';
+        await api('updateApp', { token: TOKEN, id, enabled: !enabled });
+        loadApps();
+        return;
+      }
+      if (action === 'up' || action === 'down') {
+        const ids = apps.map(a => a.id);
+        const idx = ids.indexOf(id);
+        const swapWith = action === 'up' ? idx - 1 : idx + 1;
+        if (swapWith < 0 || swapWith >= ids.length) return;
+        [ids[idx], ids[swapWith]] = [ids[swapWith], ids[idx]];
+        await api('reorderApps', { token: TOKEN, orderedIds: ids });
+        loadApps();
+      }
+    });
+
+    // ---------- Pending signups ----------
+    async function loadPending() {
+      const list = document.getElementById('pending-list');
+      const res = await api('getPendingSignups', { token: TOKEN });
+      if (!res.ok) {
+        list.innerHTML = `<p class="empty-state">${res.error || 'Could not load requests.'}</p>`;
+        return;
+      }
+      if (!res.requests.length) {
+        list.innerHTML = '<p class="empty-state">No pending requests.</p>';
+        return;
+      }
+      list.innerHTML = res.requests.map(r => `
+        <div class="pending-row" data-username="${r.username}">
+          <div class="info">
+            <div class="name">${r.fullName || r.username} <span style="color:var(--text-muted); font-weight:400;">(${r.username})</span></div>
+            <div class="meta">Requested ${new Date(r.requestedAt).toLocaleString()}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-primary" data-action="approve" data-username="${r.username}">Approve</button>
+            <button class="btn-danger" data-action="reject" data-username="${r.username}">Reject</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('pending-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const username = btn.dataset.username;
+      const action = btn.dataset.action === 'approve' ? 'approveRequest' : 'rejectRequest';
+      btn.disabled = true;
+      await api(action, { token: TOKEN, username });
+      loadPending();
+    });
+
+    // ---------- Users ----------
+    async function loadUsers() {
+      const list = document.getElementById('users-list');
+      const res = await api('getUsers', { token: TOKEN });
+      if (!res.ok) {
+        list.innerHTML = `<p class="empty-state">${res.error || 'Could not load users.'}</p>`;
+        return;
+      }
+      if (!res.users.length) {
+        list.innerHTML = '<p class="empty-state">No users yet.</p>';
+        return;
+      }
+      list.innerHTML = res.users.map(u => {
+        const isSelf = u.username.toLowerCase() === (CURRENT_ADMIN || '').toLowerCase();
+        return `
+        <div class="user-row" data-username="${u.username}">
+          <div class="top-line">
+            <span class="username">${u.username}</span>
+            <span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role}</span>
+            <span class="badge ${u.status === 'active' ? 'badge-active' : 'badge-disabled'}">${u.status}</span>
+            ${u.forcePinChange ? '<span class="badge badge-warn">PIN change pending</span>' : ''}
+            ${u.lockedOut ? '<span class="badge badge-warn">Locked out</span>' : ''}
+          </div>
+          <div class="meta">${u.fullName || ''}${u.fullName ? ' · ' : ''}Created ${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</div>
+          <div class="actions">
+            <button class="btn-ghost" data-action="reset-pin" data-username="${u.username}">Reset PIN</button>
+            <button class="btn-ghost" data-action="toggle-status" data-username="${u.username}" data-status="${u.status}">
+              ${u.status === 'active' ? 'Disable' : 'Enable'}
+            </button>
+            <button class="btn-ghost" data-action="toggle-role" data-username="${u.username}" data-role="${u.role}" ${isSelf && u.role === 'admin' ? 'disabled title="Can\'t remove your own admin role"' : ''}>
+              ${u.role === 'admin' ? 'Make user' : 'Make admin'}
+            </button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    document.getElementById('users-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const username = btn.dataset.username;
+
+      if (btn.dataset.action === 'reset-pin') {
+        const newPin = prompt(`New PIN for ${username} (4–8 digits). They'll be asked to change it on next login.`);
+        if (!newPin) return;
+        if (!/^\d{4,8}$/.test(newPin)) {
+          alert('PIN must be 4–8 digits.');
+          return;
+        }
+        const res = await api('resetUserPin', { token: TOKEN, username, newPin });
+        if (!res.ok) { alert(res.error || 'Could not reset PIN.'); return; }
+        alert('PIN reset. They must change it on next login.');
+        loadUsers();
+        return;
+      }
+
+      if (btn.dataset.action === 'toggle-status') {
+        const newStatus = btn.dataset.status === 'active' ? 'disabled' : 'active';
+        if (newStatus === 'disabled' && !confirm(`Disable ${username}? This ends their current session immediately.`)) return;
+        const res = await api('setUserStatus', { token: TOKEN, username, status: newStatus });
+        if (!res.ok) { alert(res.error || 'Could not update status.'); return; }
+        loadUsers();
+        return;
+      }
+
+      if (btn.dataset.action === 'toggle-role') {
+        const newRole = btn.dataset.role === 'admin' ? 'user' : 'admin';
+        const res = await api('setUserRole', { token: TOKEN, username, role: newRole });
+        if (!res.ok) { alert(res.error || 'Could not update role.'); return; }
+        loadUsers();
+      }
+    });
+
+    // ---------- Settings ----------
+    async function loadSettings() {
+      const res = await api('getSettings', {});
+      if (!res.ok) return;
+      const s = res.settings || {};
+      document.getElementById('settings-manhours').value = s.accidentFreeManHours || 0;
+      document.getElementById('settings-days').value = s.accidentFreeDays || 0;
+    }
+
+    document.getElementById('save-settings-btn').addEventListener('click', async () => {
+      const manhours = document.getElementById('settings-manhours').value.trim();
+      const days = document.getElementById('settings-days').value.trim();
+      const msg = document.getElementById('settings-msg');
+      msg.className = 'form-msg';
+
+      if (!/^\d+$/.test(manhours) || !/^\d+$/.test(days)) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Both values must be whole numbers.';
+        return;
+      }
+
+      const [r1, r2, r3] = await Promise.all([
+        api('updateSettings', { token: TOKEN, key: 'accidentFreeManHours', value: manhours }),
+        api('updateSettings', { token: TOKEN, key: 'accidentFreeDays', value: days }),
+        api('updateSettings', { token: TOKEN, key: 'lastUpdated', value: new Date().toISOString() })
+      ]);
+
+      if (!r1.ok || !r2.ok || !r3.ok) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Could not save one or more values.';
+        return;
+      }
+      msg.className = 'form-msg success';
+      msg.textContent = 'Saved.';
+    });
+
+    // ---------- Init ----------
+    (async function init() {
+      const ok = await requireAdmin();
+      if (!ok) return;
+      loadApps();
+      loadPending();
+      loadUsers();
+      loadSettings();
+    })();
+
+    document.getElementById('admin-logout').addEventListener('click', async () => {
+      if (TOKEN) await api('logout', { token: TOKEN });
+      localStorage.removeItem(SESSION_KEY);
+      location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

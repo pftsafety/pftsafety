@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Request Access — PFT Safety Portal</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f3f5f9;
+    --surface: #ffffff;
+    --border: #e2e5ea;
+    --text-primary: #16213d;
+    --text-secondary: #5b6472;
+    --text-muted: #8892a0;
+    --accent: #2f74f5;
+    --accent-hover: #1d5fdb;
+    --navy: #12244a;
+    --navy-hover: #0d1c3a;
+    --danger: #dc2626;
+    --danger-dim: rgba(220, 38, 38, 0.08);
+    --success: #16a34a;
+    --success-dim: rgba(22, 163, 74, 0.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+  }
+
+  .card h1 {
+    font-size: 17px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .card .sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 22px;
+    line-height: 1.5;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--navy);
+    border: none;
+    color: #fff;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 46px;
+    margin-top: 6px;
+  }
+  .btn-primary:hover { background: var(--navy-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .form-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .form-msg.error { display: block; background: var(--danger-dim); color: #b91c1c; border: 1px solid rgba(220, 38, 38, 0.3); }
+  .form-msg.success { display: block; background: var(--success-dim); color: #15803d; border: 1px solid rgba(22, 163, 74, 0.3); }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--text-secondary); }
+
+  #success-state { display: none; text-align: center; }
+  #success-state .icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--success-dim); border: 1px solid rgba(22, 163, 74, 0.35);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; color: var(--success);
+  }
+  #success-state p { color: var(--text-secondary); font-size: 13.5px; line-height: 1.5; margin: 0 0 20px; }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <div id="form-state">
+      <h1>Request access</h1>
+      <p class="sub">Submit your details for admin approval. You'll be able to sign in once approved.</p>
+
+      <form id="signup-form">
+        <div class="field">
+          <label for="su-username">Username</label>
+          <input type="text" id="su-username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="su-fullname">Full name</label>
+          <input type="text" id="su-fullname" autocomplete="name" required>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="su-pin">PIN</label>
+            <input type="password" id="su-pin" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="new-password" required>
+          </div>
+          <div class="field">
+            <label for="su-pin-confirm">Confirm PIN</label>
+            <input type="password" id="su-pin-confirm" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="new-password" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn">Submit request</button>
+        <div class="form-msg" id="form-msg"></div>
+      </form>
+
+      <a class="back-link" href="index.html">← Back to login</a>
+    </div>
+
+    <div id="success-state">
+      <div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </div>
+      <h1>Request submitted</h1>
+      <p>An admin needs to approve your account before you can sign in. You'll be able to log in once that's done.</p>
+      <a href="index.html" class="btn-primary" style="display:block; text-decoration:none; text-align:center; box-sizing:border-box;">Back to login</a>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const API_URL = PFT_CONFIG.API_URL;
+
+    async function api(action, payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action }, payload))
+      });
+      return res.json();
+    }
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('su-username').value.trim();
+      const fullName = document.getElementById('su-fullname').value.trim();
+      const pin = document.getElementById('su-pin').value;
+      const pinConfirm = document.getElementById('su-pin-confirm').value;
+      const submitBtn = document.getElementById('submit-btn');
+      const msg = document.getElementById('form-msg');
+      msg.className = 'form-msg';
+      msg.textContent = '';
+
+      if (pin !== pinConfirm) {
+        msg.className = 'form-msg error';
+        msg.textContent = "PINs don't match.";
+        return;
+      }
+      if (!/^\d{4,8}$/.test(pin)) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'PIN must be 4–8 digits.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      try {
+        const res = await api('signup', { username, pin, fullName });
+        if (!res.ok) {
+          msg.className = 'form-msg error';
+          msg.textContent = res.error || 'Could not submit request.';
+          return;
+        }
+        document.getElementById('form-state').style.display = 'none';
+        document.getElementById('success-state').style.display = 'block';
+      } catch (err) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Could not reach the server. Check your connection.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit request';
+      }
+    });
+  </script>
+</body>
+</html>

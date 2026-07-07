@@ -2,34 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PFT Safety Portal</title>
-<meta name="theme-color" content="#0a0c10">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PFT Safety">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <style>
   :root {
-    --bg: #0a0c10;
-    --surface: #12151b;
-    --surface-raised: #171b23;
-    --border: #1f2530;
-    --border-hover: #2a3140;
-    --text-primary: #e8eaed;
-    --text-secondary: #8b93a1;
-    --text-muted: #5a6270;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --accent-dim: rgba(59, 130, 246, 0.12);
-    --danger: #ef4444;
-    --danger-dim: rgba(239, 68, 68, 0.12);
-    --success: #22c55e;
+    --bg: #f3f5f9;
+    --surface: #ffffff;
+    --surface-raised: #f8f9fc;
+    --border: #e2e5ea;
+    --border-hover: #c7cdd6;
+    --text-primary: #16213d;
+    --text-secondary: #5b6472;
+    --text-muted: #8892a0;
+    --accent: #2f74f5;
+    --accent-hover: #1d5fdb;
+    --accent-dim: rgba(47, 116, 245, 0.10);
+    --navy: #12244a;
+    --navy-hover: #0d1c3a;
+    --danger: #dc2626;
+    --danger-dim: rgba(220, 38, 38, 0.08);
+    --success: #16a34a;
+    --success-dim: rgba(22, 163, 74, 0.10);
     --radius: 10px;
     --radius-sm: 6px;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
 
   body {
     background: var(--bg);
@@ -58,9 +68,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 28px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-left: max(28px, env(safe-area-inset-left));
+    padding-right: max(28px, env(safe-area-inset-right));
     border-bottom: 1px solid var(--border);
-    background: rgba(10, 12, 16, 0.85);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(8px);
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .brand {
@@ -118,42 +133,112 @@
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    padding: 7px 12px;
+    padding: 9px 14px;
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: 13px;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
+    min-height: 38px;
   }
   .btn-logout:hover { border-color: var(--border-hover); color: var(--text-primary); }
 
   /* ---------- Login view ---------- */
-  #login-view {
+  /* ---------- Login view (split panel, matches provided reference) ---------- */
+  :root {
+    --login-grad-start: #2f74f5;
+    --login-grad-end: #0a2f7a;
+    --login-navy: #12244a;
+    --login-navy-hover: #0d1c3a;
+    --login-field-bg: #f0f2f5;
+    --login-border: #e2e5ea;
+    --login-text-dark: #16213d;
+    --login-text-gray: #8892a0;
+    --login-link: #2f74f5;
+  }
+
+  #login-view { min-height: calc(100vh - 73px); }
+
+  .split-login {
+    display: flex;
+    width: 100%;
     min-height: calc(100vh - 73px);
+  }
+
+  .brand-panel {
+    position: relative;
+    flex: 1 1 44%;
+    background: linear-gradient(135deg, var(--login-grad-start), var(--login-grad-end));
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 48px;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%), rgba(255,255,255,0.08);
+  }
+  .blob-a { width: 340px; height: 340px; top: -120px; left: -100px; }
+  .blob-b { width: 260px; height: 260px; bottom: 60px; left: 30%; }
+  .blob-c { width: 200px; height: 200px; bottom: -80px; right: -60px; }
+
+  .brand-copy { position: relative; z-index: 1; max-width: 380px; }
+
+  .brand-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; margin-bottom: 22px;
+  }
+  .brand-icon svg { width: 26px; height: 26px; }
+
+  .brand-copy .eyebrow {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+
+  .brand-copy h1 {
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin: 0 0 14px;
+  }
+
+  .brand-copy p {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .form-panel {
+    flex: 1 1 56%;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
   }
 
-  .login-card {
-    width: 100%;
-    max-width: 360px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 32px 28px;
-  }
+  .login-card { width: 100%; max-width: 380px; }
 
   .login-card h1 {
-    font-size: 17px;
-    margin: 0 0 4px;
-    letter-spacing: -0.01em;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--login-text-dark);
+    margin: 0 0 6px;
   }
 
   .login-card .sub {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin: 0 0 24px;
+    font-size: 13.5px;
+    color: var(--login-text-gray);
+    margin: 0 0 26px;
   }
 
   .field { margin-bottom: 14px; }
@@ -161,91 +246,120 @@
   .field label {
     display: block;
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--login-text-gray);
     margin-bottom: 6px;
+    font-weight: 600;
   }
 
-  .field input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-family: var(--font-mono);
-    letter-spacing: 0.02em;
+  .input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--login-field-bg);
+    border: 1px solid var(--login-field-bg);
+    border-radius: 10px;
     transition: border-color 0.15s;
   }
+  .input-icon-wrap:focus-within { border-color: var(--login-link); background: #fff; }
 
-  .field input:focus {
-    outline: none;
-    border-color: var(--accent);
+  .input-icon-wrap .field-icon {
+    width: 18px; height: 18px;
+    color: var(--login-text-gray);
+    margin-left: 14px;
+    flex-shrink: 0;
+  }
+
+  .input-icon-wrap input {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--login-text-dark);
+    padding: 13px 12px;
+    font-size: 16px; /* avoids iOS auto-zoom */
+    font-family: inherit;
+  }
+  .input-icon-wrap input:focus { outline: none; }
+  .input-icon-wrap input::placeholder { color: var(--login-text-gray); }
+
+  .pin-toggle {
+    background: none;
+    border: none;
+    color: var(--login-link);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 14px;
+    cursor: pointer;
+    flex-shrink: 0;
   }
 
   .remember-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-    font-size: 12px;
+    margin: 14px 0 22px;
+    font-size: 12.5px;
   }
 
   .remember-row label {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-secondary);
+    color: var(--login-text-gray);
     cursor: pointer;
   }
 
   .remember-row a {
-    color: var(--accent);
+    color: var(--login-link);
     text-decoration: none;
     cursor: pointer;
+    font-weight: 600;
   }
   .remember-row a:hover { text-decoration: underline; }
 
   .btn-primary {
     width: 100%;
-    background: var(--accent);
+    background: var(--login-navy);
     border: none;
     color: #fff;
-    padding: 11px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 600;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.15s;
+    min-height: 48px;
+    box-shadow: 0 8px 20px rgba(18,36,74,0.25);
   }
-  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:hover { background: var(--login-navy-hover); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .form-msg {
     display: none;
     margin-top: 14px;
     padding: 10px 12px;
-    border-radius: var(--radius-sm);
+    border-radius: 8px;
     font-size: 12.5px;
     line-height: 1.4;
   }
-  .form-msg.error { display: block; background: var(--danger-dim); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
-  .form-msg.info { display: block; background: var(--accent-dim); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+  .form-msg.error { display: block; background: #fdecea; color: #b3261e; border: 1px solid #f5c6c2; }
+  .form-msg.info { display: block; background: #eaf1fe; color: #1d4ed8; border: 1px solid #c7dafc; }
 
   .signup-row {
     text-align: center;
-    margin-top: 20px;
-    font-size: 12.5px;
-    color: var(--text-muted);
+    margin-top: 22px;
+    font-size: 13px;
+    color: var(--login-text-gray);
   }
-  .signup-row a { color: var(--accent); text-decoration: none; cursor: pointer; }
+  .signup-row a { color: var(--login-link); text-decoration: none; cursor: pointer; font-weight: 700; }
   .signup-row a:hover { text-decoration: underline; }
 
   /* ---------- Launcher view ---------- */
   #app-view { display: none; }
 
   .launcher-header {
-    padding: 40px 28px 8px;
+    padding: 40px calc(28px + env(safe-area-inset-right)) 8px calc(28px + env(safe-area-inset-left));
     max-width: 1080px;
     margin: 0 auto;
   }
@@ -265,7 +379,7 @@
   .stat-strip {
     max-width: 1080px;
     margin: 20px auto 0;
-    padding: 0 28px;
+    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
@@ -298,7 +412,7 @@
   .app-grid {
     max-width: 1080px;
     margin: 28px auto 60px;
-    padding: 0 28px;
+    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 14px;
@@ -352,7 +466,7 @@
   .admin-link {
     max-width: 1080px;
     margin: 0 auto 40px;
-    padding: 0 28px;
+    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
   }
 
   .admin-link a {
@@ -362,6 +476,43 @@
     border-bottom: 1px dashed var(--border-hover);
   }
   .admin-link a:hover { color: var(--text-secondary); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 640px) {
+    .topbar { padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); }
+    .brand-text span { display: none; }
+    .brand-text strong { font-size: 13px; }
+    #session-username { display: none; }
+
+    .login-card { padding: 26px 20px; max-width: 100%; }
+    #login-view { padding: 16px; min-height: calc(100vh - 61px); }
+
+    .split-login { flex-direction: column; min-height: auto; }
+    .brand-panel { flex: none; padding: 28px 24px; min-height: 180px; align-items: flex-end; }
+    .brand-copy p { display: none; }
+    .brand-copy h1 { font-size: 22px; margin-bottom: 4px; }
+    .brand-icon { width: 42px; height: 42px; margin-bottom: 14px; }
+    .blob-a { width: 220px; height: 220px; top: -90px; left: -70px; }
+    .blob-b { width: 160px; height: 160px; bottom: -60px; left: 50%; }
+    .blob-c { width: 140px; height: 140px; bottom: -60px; right: -50px; }
+    .form-panel { padding: 28px 20px 40px; }
+
+    .launcher-header { padding: 24px 16px 4px; }
+    .launcher-header h1 { font-size: 19px; }
+
+    .stat-strip { padding: 0 16px; margin-top: 16px; }
+    .stat-card { min-width: 140px; }
+
+    .app-grid {
+      padding: 0 16px 24px;
+      grid-template-columns: 1fr;
+      margin-bottom: 24px;
+    }
+    .app-tile { padding: 18px; flex-direction: row; align-items: center; }
+    .app-tile .desc { display: none; }
+
+    .admin-link { padding: 0 16px; margin-bottom: 24px; }
+  }
 </style>
 </head>
 <body>
@@ -387,29 +538,60 @@
 
   <!-- ============ LOGIN VIEW ============ -->
   <div id="login-view">
-    <div class="login-card">
-      <h1>Sign in</h1>
-      <p class="sub">Enter your username and PIN to continue.</p>
+    <div class="split-login">
+      <div class="brand-panel">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="blob blob-c"></div>
+        <div class="brand-copy">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>
+            </svg>
+          </div>
+          <div class="eyebrow">WELCOME</div>
+          <h1>PFT Safety</h1>
+          <p>Unified access to PPE issue, permit-to-work scanning, incident reporting, and every safety system in one place.</p>
+        </div>
+      </div>
 
-      <form id="login-form">
-        <div class="field">
-          <label for="login-username">Username</label>
-          <input type="text" id="login-username" autocomplete="username" required>
-        </div>
-        <div class="field">
-          <label for="login-pin">PIN</label>
-          <input type="password" id="login-pin" inputmode="numeric" autocomplete="current-password" required>
-        </div>
-        <div class="remember-row">
-          <label><input type="checkbox" id="login-remember"> Remember me</label>
-          <a id="forgot-pin-link">Forgot PIN?</a>
-        </div>
-        <button type="submit" class="btn-primary" id="login-submit">Sign in</button>
-        <div class="form-msg" id="login-msg"></div>
-      </form>
+      <div class="form-panel">
+        <div class="login-card">
+          <h1>Sign in</h1>
+          <p class="sub">Enter your username and PIN to continue.</p>
 
-      <div class="signup-row">
-        No account yet? <a id="signup-link">Request access</a>
+          <form id="login-form">
+            <div class="field">
+              <label for="login-username">Username</label>
+              <div class="input-icon-wrap">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+                </svg>
+                <input type="text" id="login-username" autocomplete="username" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="login-pin">PIN</label>
+              <div class="input-icon-wrap">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                </svg>
+                <input type="password" id="login-pin" inputmode="numeric" autocomplete="current-password" required>
+                <button type="button" class="pin-toggle" id="pin-toggle">SHOW</button>
+              </div>
+            </div>
+            <div class="remember-row">
+              <label><input type="checkbox" id="login-remember"> Remember me</label>
+              <a id="forgot-pin-link">Forgot PIN?</a>
+            </div>
+            <button type="submit" class="btn-primary" id="login-submit">Sign in</button>
+            <div class="form-msg" id="login-msg"></div>
+          </form>
+
+          <div class="signup-row">
+            No account yet? <a id="signup-link">Request access</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -435,24 +617,22 @@
     const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
     const API_URL = PFT_CONFIG.API_URL;
 
-    const APPS = [
-      { name: 'PPE Issue', desc: 'Issue and track personal protective equipment', url: 'https://pftsafety.github.io/PPE-Issue/',
-        icon: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>' },
-      { name: 'PTW Scanner', desc: 'Scan and validate permit-to-work QR codes', url: 'https://pftsafety.github.io/PTW_Scanner/',
-        icon: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/>' },
-      { name: 'Safety Shoe Issue', desc: 'Track safety footwear issuance', url: 'https://pftsafety.github.io/Safety-Shoe-Issue/',
-        icon: '<path d="M4 17v-3c0-1 1-2 2-2l4-3 3 2h5a2 2 0 0 1 2 2v1c0 2-2 3-4 3H6a2 2 0 0 1-2-2Z"/>' },
-      { name: 'PR Tracker', desc: 'Track purchase requests through approval stages', url: 'https://pftsafety.github.io/PR-Tracker/',
-        icon: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>' },
-      { name: 'Fire Extinguishers', desc: 'Manage extinguisher inspections and AMC data', url: 'https://pftsafety.github.io/Fire-Extinguishers/',
-        icon: '<path d="M12 3v4M8 7h8l-1 3H9L8 7Z"/><path d="M9 10v9a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9"/>' },
-      { name: 'AITR', desc: 'Accident and incident investigation reports', url: 'https://pftsafety.github.io/AITR/',
-        icon: '<path d="M12 4 2 20h20L12 4Z"/><path d="M12 10v4M12 17h.01"/>' },
-      { name: 'Injury Analysis', desc: 'Dashboard of repeat incidents and watchlist', url: 'https://pftsafety.github.io/Injury-Analysis/',
-        icon: '<path d="M4 20V10M11 20V4M18 20v-7"/>' },
-      { name: 'Nearmiss', desc: 'Log and review near-miss occurrences', url: 'https://pftsafety.github.io/Nearmiss/',
-        icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>' }
-    ];
+    // Icon lookup used by admin.html's picker and the app data returned
+    // from the backend — the Apps sheet stores the key, not raw SVG.
+    const ICONS = {
+      shield: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>',
+      qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/>',
+      boot: '<path d="M4 17v-3c0-1 1-2 2-2l4-3 3 2h5a2 2 0 0 1 2 2v1c0 2-2 3-4 3H6a2 2 0 0 1-2-2Z"/>',
+      clipboard: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+      extinguisher: '<path d="M12 3v4M8 7h8l-1 3H9L8 7Z"/><path d="M9 10v9a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9"/>',
+      triangle: '<path d="M12 4 2 20h20L12 4Z"/><path d="M12 10v4M12 17h.01"/>',
+      chart: '<path d="M4 20V10M11 20V4M18 20v-7"/>',
+      'circle-alert': '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+      link: '<path d="M9 15 15 9"/><path d="M10 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M14 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
+      gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+      folder: '<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>',
+      users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 9a3 3 0 0 1 0 6"/><path d="M21 20a5.5 5.5 0 0 0-4-5.3"/>'
+    };
 
     function getSession() {
       try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
@@ -489,13 +669,23 @@
       document.getElementById('admin-link').style.display = user.role === 'admin' ? 'block' : 'none';
 
       const grid = document.getElementById('app-grid');
-      grid.innerHTML = APPS.map(app => `
-        <a class="app-tile" href="${app.url}">
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${app.icon}</svg></div>
-          <div class="name">${app.name}</div>
-          <div class="desc">${app.desc}</div>
-        </a>
-      `).join('');
+      grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading apps…</p>';
+
+      api('getApps', {}).then(res => {
+        if (!res.ok || !res.apps || !res.apps.length) {
+          grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">No apps configured yet.</p>';
+          return;
+        }
+        grid.innerHTML = res.apps.map(app => `
+          <a class="app-tile" href="${app.url}">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
+            <div class="name">${app.name}</div>
+            <div class="desc">${app.description || ''}</div>
+          </a>
+        `).join('');
+      }).catch(() => {
+        grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
+      });
 
       api('getSettings', {}).then(res => {
         if (!res.ok) return;
@@ -578,6 +768,14 @@
       showLogin();
     });
 
+    document.getElementById('pin-toggle').addEventListener('click', () => {
+      const pinInput = document.getElementById('login-pin');
+      const btn = document.getElementById('pin-toggle');
+      const showing = pinInput.type === 'text';
+      pinInput.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'SHOW' : 'HIDE';
+    });
+
     document.getElementById('forgot-pin-link').addEventListener('click', async () => {
       const username = prompt('Enter your username to request a PIN reset:');
       if (!username) return;
@@ -588,6 +786,14 @@
     document.getElementById('signup-link').addEventListener('click', () => {
       location.href = 'signup.html';
     });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {
+          // Non-fatal — app still works without offline caching.
+        });
+      });
+    }
 
     init();
   </script>

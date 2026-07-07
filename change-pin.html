@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Change PIN — PFT Safety Portal</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f3f5f9;
+    --surface: #ffffff;
+    --border: #e2e5ea;
+    --text-primary: #16213d;
+    --text-secondary: #5b6472;
+    --text-muted: #8892a0;
+    --accent: #2f74f5;
+    --accent-hover: #1d5fdb;
+    --accent-dim: rgba(47, 116, 245, 0.10);
+    --navy: #12244a;
+    --navy-hover: #0d1c3a;
+    --danger: #dc2626;
+    --danger-dim: rgba(220, 38, 38, 0.08);
+    --success: #16a34a;
+    --success-dim: rgba(22, 163, 74, 0.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+  }
+
+  .card h1 {
+    font-size: 17px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .card .sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+    line-height: 1.5;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+    transition: border-color 0.15s;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: -8px;
+    margin-bottom: 18px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--navy);
+    border: none;
+    color: #fff;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    min-height: 46px;
+  }
+  .btn-primary:hover { background: var(--navy-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .form-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .form-msg.error { display: block; background: var(--danger-dim); color: #b91c1c; border: 1px solid rgba(220, 38, 38, 0.3); }
+  .form-msg.success { display: block; background: var(--success-dim); color: #15803d; border: 1px solid rgba(22, 163, 74, 0.3); }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <h1 id="card-title">Change your PIN</h1>
+    <p class="sub" id="card-sub">Choose a new PIN to finish signing in.</p>
+
+    <form id="change-form">
+      <div class="field">
+        <label for="new-pin">New PIN</label>
+        <input type="password" id="new-pin" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="new-password" required>
+      </div>
+      <div class="field">
+        <label for="confirm-pin">Confirm new PIN</label>
+        <input type="password" id="confirm-pin" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" autocomplete="new-password" required>
+      </div>
+      <div class="hint">4–8 digits. Avoid reusing your previous PIN.</div>
+
+      <button type="submit" class="btn-primary" id="submit-btn">Update PIN</button>
+      <div class="form-msg" id="form-msg"></div>
+    </form>
+
+    <a class="back-link" id="back-link" href="index.html">← Back to login</a>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
+    const API_URL = PFT_CONFIG.API_URL;
+    const PORTAL_URL = PFT_CONFIG.PORTAL_URL || 'index.html';
+
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+    async function api(action, payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action }, payload))
+      });
+      return res.json();
+    }
+
+    const session = getSession();
+    if (!session || !session.token) {
+      // Nothing to change a PIN for — send back to login.
+      location.href = 'index.html';
+    }
+
+    document.getElementById('change-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPin = document.getElementById('new-pin').value;
+      const confirmPin = document.getElementById('confirm-pin').value;
+      const submitBtn = document.getElementById('submit-btn');
+      const msg = document.getElementById('form-msg');
+      msg.className = 'form-msg';
+      msg.textContent = '';
+
+      if (newPin !== confirmPin) {
+        msg.className = 'form-msg error';
+        msg.textContent = "PINs don't match.";
+        return;
+      }
+      if (!/^\d{4,8}$/.test(newPin)) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'PIN must be 4–8 digits.';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Updating…';
+
+      try {
+        const res = await api('changePin', { token: session.token, newPin });
+        if (!res.ok) {
+          msg.className = 'form-msg error';
+          msg.textContent = res.error || 'Could not update PIN.';
+          return;
+        }
+        msg.className = 'form-msg success';
+        msg.textContent = 'PIN updated. Redirecting…';
+        setTimeout(() => { location.href = 'index.html'; }, 900);
+      } catch (err) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Could not reach the server. Check your connection.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update PIN';
+      }
+    });
+  </script>
+</body>
+</html>
