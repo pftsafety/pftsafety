@@ -671,20 +671,34 @@
       const grid = document.getElementById('app-grid');
       grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading apps…</p>';
 
-      api('getApps', {}).then(res => {
-        if (!res.ok || !res.apps || !res.apps.length) {
+      // Use sessionStorage cache so navigating back from a sub-app doesn't
+      // fire another Apps Script round-trip just to re-render the same tiles.
+      const APPS_CACHE_KEY = 'pft_apps_cache';
+      const cached = (() => { try { return JSON.parse(sessionStorage.getItem(APPS_CACHE_KEY)); } catch (e) { return null; } })();
+
+      function renderGrid(apps) {
+        if (!apps || !apps.length) {
           grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">No apps configured yet.</p>';
           return;
         }
-        grid.innerHTML = res.apps.map(app => `
+        grid.innerHTML = apps.map(app => `
           <a class="app-tile" href="${app.url}">
             <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
             <div class="name">${app.name}</div>
             <div class="desc">${app.description || ''}</div>
           </a>
         `).join('');
+      }
+
+      // Render from cache immediately if available, then refresh in background.
+      if (cached) renderGrid(cached);
+
+      api('getApps', {}).then(res => {
+        if (!res.ok || !res.apps) return;
+        try { sessionStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
+        renderGrid(res.apps);
       }).catch(() => {
-        grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
+        if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
       });
 
       api('getSettings', {}).then(res => {
@@ -707,19 +721,46 @@
       const session = getSession();
       if (!session || !session.token) { showLogin(); return; }
 
-      const params = new URLSearchParams(location.search);
-      const check = await api('validateSession', { token: session.token });
-      if (!check.ok) {
+      // If the session is locally expired, don't even try the network.
+      if (session.expiresAt && new Date(session.expiresAt) < new Date()) {
         clearSession();
         showLogin('Your session expired. Please sign in again.');
         return;
       }
 
-      // If arrived here via a redirect from a sub-app, send them straight back.
+      const params = new URLSearchParams(location.search);
       const redirect = params.get('redirect');
-      if (redirect) { location.href = redirect; return; }
 
-      renderLauncher({ username: check.username, role: check.role });
+      // Render immediately from the local session — no API round-trip before
+      // the user sees the launcher. This is what eliminates the blank flash
+      // when navigating back from admin.html.
+      if (!redirect) {
+        renderLauncher({ username: session.username, role: session.role });
+      }
+
+      // Validate in the background. If the server rejects the token
+      // (genuinely expired/revoked), pull back to login at that point.
+      api('validateSession', { token: session.token }).then(check => {
+        if (!check.ok) {
+          clearSession();
+          showLogin('Your session expired. Please sign in again.');
+          return;
+        }
+        // If the redirect param is set, send them back to the sub-app now
+        // that we've confirmed the session is live.
+        if (redirect) {
+          location.href = redirect;
+          return;
+        }
+        // Silently refresh username/role in case role changed since last login.
+        if (check.username !== session.username || check.role !== session.role) {
+          const updated = Object.assign({}, session, { username: check.username, role: check.role });
+          setSession(updated);
+          renderLauncher({ username: check.username, role: check.role });
+        }
+      }).catch(() => {
+        // Network failure — local session is still trusted until it expires.
+      });
     }
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
