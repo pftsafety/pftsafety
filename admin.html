@@ -388,6 +388,15 @@
     let TOKEN = session ? session.token : null;
     let CURRENT_ADMIN = null;
 
+    // Instant visual feedback helper — disables a button and shows a
+    // temporary label while an async action runs, then restores it.
+    function setLoading(btn, loadingText) {
+      const original = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = loadingText || '…';
+      return () => { btn.disabled = false; btn.textContent = original; };
+    }
+
     // ---------- Auth gate ----------
     async function requireAdmin() {
       if (!TOKEN) { location.href = 'index.html'; return false; }
@@ -485,9 +494,11 @@
         return;
       }
 
+      const restore = setLoading(document.getElementById('save-app-btn'), 'Saving…');
       const res = editingAppId
         ? await api('updateApp', { token: TOKEN, id: editingAppId, name, description, url, icon })
         : await api('addApp', { token: TOKEN, name, description, url, icon });
+      restore();
 
       if (!res.ok) {
         msg.className = 'form-msg error';
@@ -564,8 +575,9 @@
       if (!btn) return;
       const username = btn.dataset.username;
       const action = btn.dataset.action === 'approve' ? 'approveRequest' : 'rejectRequest';
-      btn.disabled = true;
+      const restore = setLoading(btn, btn.dataset.action === 'approve' ? 'Approving…' : 'Rejecting…');
       await api(action, { token: TOKEN, username });
+      restore();
       loadPending();
     });
 
@@ -615,11 +627,10 @@
       if (btn.dataset.action === 'reset-pin') {
         const newPin = prompt(`New PIN for ${username} (4–8 digits). They'll be asked to change it on next login.`);
         if (!newPin) return;
-        if (!/^\d{4,8}$/.test(newPin)) {
-          alert('PIN must be 4–8 digits.');
-          return;
-        }
+        if (!/^\d{4,8}$/.test(newPin)) { alert('PIN must be 4–8 digits.'); return; }
+        const restore = setLoading(btn, 'Resetting…');
         const res = await api('resetUserPin', { token: TOKEN, username, newPin });
+        restore();
         if (!res.ok) { alert(res.error || 'Could not reset PIN.'); return; }
         alert('PIN reset. They must change it on next login.');
         loadUsers();
@@ -629,7 +640,9 @@
       if (btn.dataset.action === 'toggle-status') {
         const newStatus = btn.dataset.status === 'active' ? 'disabled' : 'active';
         if (newStatus === 'disabled' && !confirm(`Disable ${username}? This ends their current session immediately.`)) return;
+        const restore = setLoading(btn, '…');
         const res = await api('setUserStatus', { token: TOKEN, username, status: newStatus });
+        restore();
         if (!res.ok) { alert(res.error || 'Could not update status.'); return; }
         loadUsers();
         return;
@@ -637,7 +650,9 @@
 
       if (btn.dataset.action === 'toggle-role') {
         const newRole = btn.dataset.role === 'admin' ? 'user' : 'admin';
+        const restore = setLoading(btn, '…');
         const res = await api('setUserRole', { token: TOKEN, username, role: newRole });
+        restore();
         if (!res.ok) { alert(res.error || 'Could not update role.'); return; }
         loadUsers();
       }
@@ -664,11 +679,13 @@
         return;
       }
 
+      const restore = setLoading(document.getElementById('save-settings-btn'), 'Saving…');
       const [r1, r2, r3] = await Promise.all([
         api('updateSettings', { token: TOKEN, key: 'accidentFreeManHours', value: manhours }),
         api('updateSettings', { token: TOKEN, key: 'accidentFreeDays', value: days }),
         api('updateSettings', { token: TOKEN, key: 'lastUpdated', value: new Date().toISOString() })
       ]);
+      restore();
 
       if (!r1.ok || !r2.ok || !r3.ok) {
         msg.className = 'form-msg error';
@@ -679,14 +696,12 @@
       msg.textContent = 'Saved.';
     });
 
-    // ---------- Init ----------
+    // ---------- Init — all four panels load in parallel ----------
     (async function init() {
       const ok = await requireAdmin();
       if (!ok) return;
-      loadApps();
-      loadPending();
-      loadUsers();
-      loadSettings();
+      // Fire all fetches at once instead of sequentially.
+      Promise.all([loadApps(), loadPending(), loadUsers(), loadSettings()]);
     })();
 
     document.getElementById('admin-logout').addEventListener('click', async () => {
