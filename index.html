@@ -958,6 +958,68 @@
           if (dyEl) dyEl.textContent = v.days.toLocaleString('en-US');
         }, 1000);
       });
+
+      // Preload all app URLs in the background so tapping a tile
+      // opens an already-cached page instead of a cold load.
+      preloadApps();
+    }
+
+    // Injects hidden <link rel="prefetch"> tags for every app URL.
+    // Uses prefetch (not preload) — it's a low-priority background hint
+    // that downloads the page when the browser is idle, without blocking
+    // anything the user is currently doing.
+    // Falls back to fetch() on browsers that don't support <link prefetch>
+    // (older Safari/iOS versions).
+    function preloadApps() {
+      const PRELOAD_KEY = 'pft_preloaded';
+      // Only preload once per session — not on every back-navigation.
+      if (sessionStorage.getItem(PRELOAD_KEY)) return;
+      sessionStorage.setItem(PRELOAD_KEY, '1');
+
+      const cached = (() => {
+        try { return JSON.parse(sessionStorage.getItem('pft_apps_cache')); }
+        catch (e) { return null; }
+      })();
+
+      function injectPrefetch(urls) {
+        const supportsLink = 'relList' in document.createElement('link') &&
+                             document.createElement('link').relList.supports('prefetch');
+        urls.forEach(url => {
+          if (!url || !url.startsWith('http')) return;
+          if (supportsLink) {
+            const link  = document.createElement('link');
+            link.rel    = 'prefetch';
+            link.href   = url;
+            link.as     = 'document';
+            document.head.appendChild(link);
+          } else {
+            // Fallback: silent fetch with lowest priority
+            fetch(url, { priority: 'low', mode: 'no-cors', credentials: 'omit' }).catch(() => {});
+          }
+        });
+      }
+
+      // If apps are already cached from this session, prefetch immediately.
+      if (cached && cached.length) {
+        injectPrefetch(cached.map(a => a.url));
+        return;
+      }
+
+      // Otherwise wait for getApps to resolve (it's already in flight from
+      // renderGrid above — this just reacts to sessionStorage being populated).
+      const poll = setInterval(() => {
+        const apps = (() => {
+          try { return JSON.parse(sessionStorage.getItem('pft_apps_cache')); }
+          catch (e) { return null; }
+        })();
+        if (apps && apps.length) {
+          clearInterval(poll);
+          injectPrefetch(apps.map(a => a.url));
+        }
+      }, 300);
+
+      // Give up after 10 seconds if apps never load.
+      setTimeout(() => clearInterval(poll), 10000);
     }
 
     async function init() {
