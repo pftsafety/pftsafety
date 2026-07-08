@@ -387,128 +387,141 @@
     flex-wrap: wrap;
   }
 
-  /* ---- Manhours hero card ---- */
-  .mh-card {
-    flex: 2 1 340px;
-    min-width: 260px;
-    background: linear-gradient(135deg, #1e3a8a, #172554);
-    border-radius: var(--radius);
-    padding: 20px 22px 16px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.22);
+  /* ---- Safety banner (single unified card) ---- */
+  .stat-strip {
+    max-width: 1080px;
+    margin: 20px auto 0;
+    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
   }
 
-  .mh-card::before {
+  .safety-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(30, 58, 138, 0.22);
+    position: relative;
+  }
+
+  /* shimmer sweep */
+  .safety-banner::before {
     content: '';
     position: absolute;
-    top: 0; left: -200%;
-    width: 80%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent);
+    top: 0; left: -200%; width: 60%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
     transform: skewX(-20deg);
-    animation: mhShimmer 5s ease-in-out infinite;
+    animation: sbShimmer 6s ease-in-out infinite;
     pointer-events: none;
   }
-  @keyframes mhShimmer {
-    0%, 60% { left: -200%; }
-    100% { left: 250%; }
-  }
+  @keyframes sbShimmer { 0%,65%{ left:-200%; } 100%{ left:260%; } }
 
-  .mh-hazard {
+  /* hazard stripe at bottom */
+  .safety-banner::after {
+    content: '';
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 5px;
+    bottom: 0; left: 0; right: 0; height: 5px;
     background: repeating-linear-gradient(
       -45deg,
       #facc15, #facc15 8px,
-      #1e293b 8px, #1e293b 16px
+      #1e293b   8px, #1e293b   16px
     );
-    animation: mhStripes 30s linear infinite;
+    animation: sbStripe 30s linear infinite;
   }
-  @keyframes mhStripes {
-    from { background-position: 0 0; }
-    to { background-position: 200px 0; }
+  @keyframes sbStripe { to { background-position: 200px 0; } }
+
+  .sb-inner {
+    display: flex;
+    align-items: stretch;
+    padding: 18px 24px 22px;
+    gap: 0;
   }
 
-  .mh-label {
+  /* Manhours section — grows to fill space */
+  .sb-manhours {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-right: 24px;
+  }
+
+  .sb-eyebrow {
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     color: #93c5fd;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
+    white-space: nowrap;
   }
 
-  .mh-counter-row {
+  .sb-count-row {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .mh-number {
+  .sb-number {
     font-family: 'Oswald', 'Impact', var(--font-mono);
-    font-size: clamp(28px, 5vw, 48px);
+    font-size: clamp(30px, 4.5vw, 52px);
     font-weight: 700;
     color: #ffffff;
     letter-spacing: -1px;
     line-height: 1;
-    min-width: 0;
   }
 
-  .mh-unit {
-    font-size: 13px;
+  .sb-unit {
+    font-size: 12px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     white-space: nowrap;
-    padding-bottom: 2px;
   }
 
-  /* ---- Smaller stat cards ---- */
-  .stat-card {
-    flex: 1 1 140px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
+  /* Dividers between sections */
+  .sb-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 24px;
+    align-self: stretch;
+  }
+
+  /* Safe days + Last incident — stacked in a column each */
+  .sb-stat {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
+    min-width: 110px;
   }
 
-  .stat-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transition: transform 0.25s ease;
-    transform-origin: left;
-  }
-  .stat-card:hover::after { transform: scaleX(1); }
-
-  .stat-card .label {
+  .sb-stat-label {
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    color: #64748b;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    white-space: nowrap;
   }
 
-  .stat-card .value {
-    font-family: var(--font-mono);
-    font-size: 22px;
-    color: var(--navy);
+  .sb-stat-value {
+    font-family: 'Oswald', 'Impact', var(--font-mono);
+    font-size: clamp(20px, 2.8vw, 32px);
     font-weight: 700;
+    color: #10b981;
     line-height: 1;
   }
 
-  .stat-card.highlight .value {
-    color: var(--success);
+  .sb-stat-value.date-val {
+    font-family: var(--font-sans);
+    font-size: clamp(13px, 1.6vw, 17px);
+    color: #e2e8f0;
+    font-weight: 600;
+    padding-top: 2px;
+  }
+
+  /* Mobile — stack vertically */
+  @media (max-width: 600px) {
+    .sb-inner { flex-direction: column; gap: 16px; padding: 16px 18px 20px; }
+    .sb-divider { width: 100%; height: 1px; margin: 0; }
+    .sb-manhours { padding-right: 0; }
   }
 
   .app-grid {
@@ -603,8 +616,8 @@
     .launcher-header h1 { font-size: 19px; }
 
     .stat-strip { padding: 0 16px; margin-top: 16px; }
-    .mh-card { flex: 1 1 100%; }
-    .stat-card { min-width: 120px; }
+    .sb-number { font-size: 28px; }
+    .sb-stat-value { font-size: 20px; }
 
     .app-grid {
       padding: 0 16px 24px;
@@ -809,72 +822,79 @@
         const s = res.settings || {};
         const strip = document.getElementById('stat-strip');
 
-        // Parse last incident date from settings, or fall back to a stored date.
-        const incidentDate = s.lastIncidentDate ? new Date(s.lastIncidentDate) : null;
-        const totalWorkers = Number(s.totalWorkforce) || 1500;
-        const shiftHours   = Number(s.shiftHours) || 8;
+        // Exact same calculation as the reference HTML:
+        // accidentDate fixed at 2023-12-02, workers=1500, shiftHours=8.
+        // Admin can override via Settings; fall back to these defaults.
+        const incidentDateStr = s.lastIncidentDate || '2023-12-02';
+        const totalWorkers    = Number(s.totalWorkforce) || 1500;
+        const shiftHours      = Number(s.shiftHours)     || 8;
+        const incidentDate    = new Date(incidentDateStr + 'T00:00:00');
 
-        // Compute live values from the incident date if available, otherwise
-        // fall back to the manually-entered manhours/days from Settings.
-        let manHours = Number(s.accidentFreeManHours) || 0;
-        let safeDays = Number(s.accidentFreeDays) || 0;
-        let lastDate = s.lastIncidentDate || '—';
-
-        if (incidentDate && !isNaN(incidentDate)) {
-          const diffMs   = Date.now() - incidentDate.getTime();
+        function calcValues() {
+          const now      = new Date();
+          const diffMs   = now - incidentDate;
           const diffDays = diffMs / (1000 * 60 * 60 * 24);
-          safeDays  = Math.floor(diffDays);
-          manHours  = Math.floor(diffDays * totalWorkers * shiftHours);
-          lastDate  = incidentDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+          return {
+            days:     Math.floor(diffDays),
+            manhours: Math.floor(diffDays * totalWorkers * shiftHours)
+          };
         }
 
-        function fmtNum(n) { return Math.round(n).toLocaleString('en-US'); }
+        function fmt(n) { return n.toLocaleString('en-US'); }
+
+        const lastDateLabel = incidentDate.toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        const initial = calcValues();
 
         strip.innerHTML = `
-          <div class="mh-card">
-            <div class="mh-label">Accident-free manhours continuously worked</div>
-            <div class="mh-counter-row">
-              <div class="mh-number" id="mh-counter">0</div>
-              <div class="mh-unit">Manhours</div>
+          <div class="safety-banner">
+            <div class="sb-inner">
+              <div class="sb-manhours">
+                <div class="sb-eyebrow">Accident-free manhours continuously worked</div>
+                <div class="sb-count-row">
+                  <div class="sb-number" id="sb-mh">${fmt(initial.manhours)}</div>
+                  <div class="sb-unit">Manhours</div>
+                </div>
+              </div>
+              <div class="sb-divider"></div>
+              <div class="sb-stat">
+                <div class="sb-stat-label">Safe calendar days</div>
+                <div class="sb-stat-value" id="sb-days">${fmt(initial.days)}</div>
+              </div>
+              <div class="sb-divider"></div>
+              <div class="sb-stat">
+                <div class="sb-stat-label">Last incident date</div>
+                <div class="sb-stat-value date-val">${lastDateLabel}</div>
+              </div>
             </div>
-            <div class="mh-hazard"></div>
-          </div>
-          <div class="stat-card highlight">
-            <div class="label">Safe calendar days</div>
-            <div class="value" id="sc-days">${fmtNum(safeDays)}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Last incident</div>
-            <div class="value" style="font-size:14px; padding-top:4px;">${lastDate}</div>
           </div>
         `;
 
-        // Animate the manhours counter from 0 → current value.
-        const el = document.getElementById('mh-counter');
-        const target = manHours;
-        const duration = 1400;
-        let start = null;
+        // Count-up animation for manhours (same easing as reference).
+        const mhEl   = document.getElementById('sb-mh');
+        const target = initial.manhours;
+        const dur    = 1500;
+        let t0       = null;
         function step(ts) {
-          if (!start) start = ts;
-          const p = Math.min((ts - start) / duration, 1);
-          const ease = 1 - Math.pow(1 - p, 4);
-          el.textContent = fmtNum(ease * target);
+          if (!t0) t0 = ts;
+          const p    = Math.min((ts - t0) / dur, 1);
+          const ease = 1 - Math.pow(1 - p, 5); // same as reference
+          mhEl.textContent = fmt(Math.floor(ease * target));
           if (p < 1) requestAnimationFrame(step);
-          else el.textContent = fmtNum(target);
+          else mhEl.textContent = fmt(target);
         }
         requestAnimationFrame(step);
 
-        // If we computed values from a live incident date, tick every second.
-        if (incidentDate && !isNaN(incidentDate)) {
-          setInterval(() => {
-            const diffMs   = Date.now() - incidentDate.getTime();
-            const diffDays = diffMs / (1000 * 60 * 60 * 24);
-            const mh = Math.floor(diffDays * totalWorkers * shiftHours);
-            el.textContent = fmtNum(mh);
-            const daysEl = document.getElementById('sc-days');
-            if (daysEl) daysEl.textContent = fmtNum(Math.floor(diffDays));
-          }, 1000);
-        }
+        // Live tick every second (same as reference setInterval 1000ms).
+        setInterval(() => {
+          const v = calcValues();
+          const mhLive = document.getElementById('sb-mh');
+          const dyLive = document.getElementById('sb-days');
+          if (mhLive) mhLive.textContent = fmt(v.manhours);
+          if (dyLive) dyLive.textContent  = fmt(v.days);
+        }, 1000);
       });
     }
 
