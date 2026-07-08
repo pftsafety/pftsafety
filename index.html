@@ -48,13 +48,13 @@
     color: var(--text-primary);
     font-family: var(--font-sans);
     min-height: 100vh;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     background-image:
       linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
     background-size: 48px 48px;
-    background-position: center;
-    background-attachment: fixed;
+    background-position: left top;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -69,15 +69,17 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 28px;
-    padding-top: max(20px, env(safe-area-inset-top));
-    padding-left: max(28px, env(safe-area-inset-left));
-    padding-right: max(28px, env(safe-area-inset-right));
+    padding: 16px 32px;
+    padding-top: max(16px, env(safe-area-inset-top));
     border-bottom: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
     flex-wrap: wrap;
     gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
   }
 
   .brand {
@@ -360,10 +362,13 @@
   /* ---------- Launcher view ---------- */
   #app-view { display: none; }
 
+  /* ---- Content column — all launcher sections share this width ---- */
   .launcher-header {
-    padding: 40px calc(28px + env(safe-area-inset-right)) 8px calc(28px + env(safe-area-inset-left));
-    max-width: 1080px;
+    padding: 32px 32px 8px;
+    max-width: 1280px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .launcher-header h1 {
@@ -378,19 +383,11 @@
     margin: 0;
   }
 
-  .stat-strip {
-    max-width: 1080px;
-    margin: 20px auto 0;
-    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  /* ---- Safety banner — full width ---- */
+  /* ---- Safety banner — full width background, content column inside ---- */
   .stat-strip {
     margin: 20px 0 0;
     padding: 0;
+    width: 100%;
   }
 
   .safety-banner {
@@ -430,8 +427,10 @@
     align-items: stretch;
     padding: 22px 32px 26px;
     gap: 0;
-    max-width: 1080px;
+    max-width: 1280px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* left — manhours counter, takes most space */
@@ -553,18 +552,19 @@
   }
 
   @media (max-width: 640px) {
-    .sb-inner { flex-direction: column; padding: 18px 20px 22px; gap: 18px; }
+    .sb-inner { flex-direction: column; padding: 16px 16px 20px; gap: 16px; }
     .sb-divider { width: 100%; height: 1px; margin: 0; }
     .sb-manhours { padding-right: 0; }
-    .sb-number { font-size: 36px; }
   }
   .app-grid {
-    max-width: 1080px;
-    margin: 28px auto 60px;
-    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
+    max-width: 1280px;
+    margin: 24px auto 60px;
+    padding: 0 32px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .app-tile {
@@ -613,9 +613,11 @@
   }
 
   .admin-link {
-    max-width: 1080px;
+    max-width: 1280px;
     margin: 0 auto 40px;
-    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
+    padding: 0 32px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .admin-link a {
@@ -646,15 +648,18 @@
     .blob-c { width: 140px; height: 140px; bottom: -60px; right: -50px; }
     .form-panel { padding: 28px 20px 40px; }
 
-    .launcher-header { padding: 24px 16px 4px; }
+    .launcher-header { padding: 20px 16px 4px; }
     .launcher-header h1 { font-size: 19px; }
 
-    .stat-strip { padding: 0 16px; margin-top: 16px; }
-    .sb-number { font-size: 28px; }
-    .sb-stat-value { font-size: 20px; }
+    .stat-strip { margin-top: 12px; }
+    .sb-inner { flex-direction: column; padding: 16px 16px 20px; gap: 16px; }
+    .sb-divider { width: 100%; height: 1px; margin: 0; }
+    .sb-manhours { padding-right: 0; }
+    .sb-number { font-size: 32px; }
+    .sb-stat-value { font-size: 22px; }
 
     .app-grid {
-      padding: 0 16px 24px;
+      padding: 0 12px 24px;
       grid-template-columns: 1fr;
       margin-bottom: 24px;
     }
