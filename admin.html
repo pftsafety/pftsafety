@@ -337,11 +337,24 @@
     </div>
     <div class="form-card active">
       <div class="field">
-        <label for="settings-manhours">Accident-free man-hours</label>
+        <label for="settings-incident-date">Last incident date <span style="color:var(--text-muted); font-weight:400;">(YYYY-MM-DD — manhours &amp; days auto-calculate from this)</span></label>
+        <input type="date" id="settings-incident-date">
+      </div>
+      <div class="field">
+        <label for="settings-workforce">Total workforce</label>
+        <input type="text" id="settings-workforce" inputmode="numeric" placeholder="e.g. 1500">
+      </div>
+      <div class="field">
+        <label for="settings-shifthours">Shift hours per day</label>
+        <input type="text" id="settings-shifthours" inputmode="numeric" placeholder="e.g. 8">
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin:0 0 14px;">If incident date is set, manhours and safe days are calculated live. The fields below are only used as manual overrides if no date is set.</p>
+      <div class="field">
+        <label for="settings-manhours">Accident-free man-hours (manual override)</label>
         <input type="text" id="settings-manhours" inputmode="numeric">
       </div>
       <div class="field">
-        <label for="settings-days">Accident-free days</label>
+        <label for="settings-days">Accident-free days (manual override)</label>
         <input type="text" id="settings-days" inputmode="numeric">
       </div>
       <div class="form-actions">
@@ -663,31 +676,43 @@
       const res = await api('getSettings', {});
       if (!res.ok) return;
       const s = res.settings || {};
-      document.getElementById('settings-manhours').value = s.accidentFreeManHours || 0;
-      document.getElementById('settings-days').value = s.accidentFreeDays || 0;
+      if (s.lastIncidentDate) document.getElementById('settings-incident-date').value = s.lastIncidentDate;
+      document.getElementById('settings-workforce').value  = s.totalWorkforce  || 1500;
+      document.getElementById('settings-shifthours').value = s.shiftHours      || 8;
+      document.getElementById('settings-manhours').value   = s.accidentFreeManHours || 0;
+      document.getElementById('settings-days').value       = s.accidentFreeDays     || 0;
     }
 
     document.getElementById('save-settings-btn').addEventListener('click', async () => {
-      const manhours = document.getElementById('settings-manhours').value.trim();
-      const days = document.getElementById('settings-days').value.trim();
+      const incidentDate = document.getElementById('settings-incident-date').value.trim();
+      const workforce    = document.getElementById('settings-workforce').value.trim();
+      const shiftHours   = document.getElementById('settings-shifthours').value.trim();
+      const manhours     = document.getElementById('settings-manhours').value.trim();
+      const days         = document.getElementById('settings-days').value.trim();
       const msg = document.getElementById('settings-msg');
       msg.className = 'form-msg';
 
-      if (!/^\d+$/.test(manhours) || !/^\d+$/.test(days)) {
+      if ((manhours && !/^\d+$/.test(manhours)) || (days && !/^\d+$/.test(days)) ||
+          (workforce && !/^\d+$/.test(workforce)) || (shiftHours && !/^\d+$/.test(shiftHours))) {
         msg.className = 'form-msg error';
-        msg.textContent = 'Both values must be whole numbers.';
+        msg.textContent = 'Numeric fields must be whole numbers.';
         return;
       }
 
       const restore = setLoading(document.getElementById('save-settings-btn'), 'Saving…');
-      const [r1, r2, r3] = await Promise.all([
-        api('updateSettings', { token: TOKEN, key: 'accidentFreeManHours', value: manhours }),
-        api('updateSettings', { token: TOKEN, key: 'accidentFreeDays', value: days }),
-        api('updateSettings', { token: TOKEN, key: 'lastUpdated', value: new Date().toISOString() })
-      ]);
+      const saves = [
+        api('updateSettings', { token: TOKEN, key: 'accidentFreeManHours', value: manhours || 0 }),
+        api('updateSettings', { token: TOKEN, key: 'accidentFreeDays',     value: days     || 0 }),
+        api('updateSettings', { token: TOKEN, key: 'lastUpdated',          value: new Date().toISOString() }),
+      ];
+      if (incidentDate) saves.push(api('updateSettings', { token: TOKEN, key: 'lastIncidentDate', value: incidentDate }));
+      if (workforce)    saves.push(api('updateSettings', { token: TOKEN, key: 'totalWorkforce',   value: workforce }));
+      if (shiftHours)   saves.push(api('updateSettings', { token: TOKEN, key: 'shiftHours',       value: shiftHours }));
+
+      const results = await Promise.all(saves);
       restore();
 
-      if (!r1.ok || !r2.ok || !r3.ok) {
+      if (results.some(r => !r.ok)) {
         msg.className = 'form-msg error';
         msg.textContent = 'Could not save one or more values.';
         return;
