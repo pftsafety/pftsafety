@@ -387,123 +387,159 @@
     flex-wrap: wrap;
   }
 
-  /* ---- Safety banner (single unified card) ---- */
+  /* ---- Safety banner — full width ---- */
   .stat-strip {
-    max-width: 1080px;
-    margin: 20px auto 0;
-    padding: 0 calc(28px + env(safe-area-inset-right)) 0 calc(28px + env(safe-area-inset-left));
+    margin: 20px 0 0;
+    padding: 0;
   }
 
   .safety-banner {
-    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 4px 24px rgba(30, 58, 138, 0.22);
+    background: linear-gradient(120deg, #0f2460 0%, #1e3a8a 45%, #1e40af 100%);
     position: relative;
+    overflow: hidden;
   }
 
-  /* shimmer sweep */
+  /* animated diagonal shine */
   .safety-banner::before {
     content: '';
     position: absolute;
-    top: 0; left: -200%; width: 60%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent);
-    transform: skewX(-20deg);
-    animation: sbShimmer 6s ease-in-out infinite;
+    top: -50%; left: -80%;
+    width: 50%; height: 200%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.055), transparent);
+    transform: skewX(-18deg);
+    animation: sbGlide 7s ease-in-out infinite;
     pointer-events: none;
   }
-  @keyframes sbShimmer { 0%,65%{ left:-200%; } 100%{ left:260%; } }
+  @keyframes sbGlide { 0%,60%{ left:-80%; } 100%{ left:180%; } }
 
-  /* hazard stripe at bottom */
-  .safety-banner::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0; height: 5px;
+  /* hazard stripe — top edge this time */
+  .sb-hazard {
+    height: 5px;
     background: repeating-linear-gradient(
       -45deg,
-      #facc15, #facc15 8px,
-      #1e293b   8px, #1e293b   16px
+      #facc15 0px, #facc15 10px,
+      #0f172a 10px, #0f172a 20px
     );
-    animation: sbStripe 30s linear infinite;
+    animation: sbStripe 25s linear infinite;
+    background-size: 28px 28px;
   }
   @keyframes sbStripe { to { background-position: 200px 0; } }
 
   .sb-inner {
     display: flex;
     align-items: stretch;
-    padding: 18px 24px 22px;
+    padding: 22px 32px 26px;
     gap: 0;
+    max-width: 1080px;
+    margin: 0 auto;
   }
 
-  /* Manhours section — grows to fill space */
+  /* left — manhours counter, takes most space */
   .sb-manhours {
     flex: 1 1 0;
     min-width: 0;
-    padding-right: 24px;
+    padding-right: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .sb-eyebrow {
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     color: #93c5fd;
     font-weight: 700;
-    margin-bottom: 5px;
-    white-space: nowrap;
+    margin-bottom: 8px;
   }
 
   .sb-count-row {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 10px;
   }
 
+  /* digit slots container */
   .sb-number {
-    font-family: 'Oswald', 'Impact', var(--font-mono);
-    font-size: clamp(30px, 4.5vw, 52px);
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(34px, 5vw, 56px);
     font-weight: 700;
-    color: #ffffff;
-    letter-spacing: -1px;
+    color: #fff;
+    letter-spacing: 2px;
     line-height: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+  }
+
+  /* each individual digit slot */
+  .sb-digit {
+    display: inline-flex;
+    flex-direction: column;
+    height: 1em;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .sb-digit-inner {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .sb-digit-inner span {
+    height: 1em;
+    line-height: 1em;
+    text-align: center;
+    display: block;
+  }
+
+  .sb-comma {
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(34px, 5vw, 56px);
+    color: #4b76c8;
+    line-height: 1;
+    padding-bottom: 2px;
+    align-self: flex-end;
   }
 
   .sb-unit {
     font-size: 12px;
     font-weight: 700;
-    color: #64748b;
+    color: #4b76c8;
     text-transform: uppercase;
-    white-space: nowrap;
+    letter-spacing: 0.1em;
+    padding-bottom: 4px;
   }
 
-  /* Dividers between sections */
+  /* dividers */
   .sb-divider {
     width: 1px;
-    background: rgba(255,255,255,0.1);
-    margin: 0 24px;
-    align-self: stretch;
+    background: rgba(255,255,255,0.12);
+    margin: 0 28px;
+    flex-shrink: 0;
   }
 
-  /* Safe days + Last incident — stacked in a column each */
+  /* right stats */
   .sb-stat {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-width: 110px;
+    min-width: 130px;
   }
 
   .sb-stat-label {
     font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #64748b;
+    letter-spacing: 0.14em;
+    color: #4b76c8;
     font-weight: 700;
-    margin-bottom: 4px;
-    white-space: nowrap;
+    margin-bottom: 6px;
   }
 
   .sb-stat-value {
-    font-family: 'Oswald', 'Impact', var(--font-mono);
-    font-size: clamp(20px, 2.8vw, 32px);
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(22px, 3vw, 36px);
     font-weight: 700;
     color: #10b981;
     line-height: 1;
@@ -511,19 +547,17 @@
 
   .sb-stat-value.date-val {
     font-family: var(--font-sans);
-    font-size: clamp(13px, 1.6vw, 17px);
+    font-size: clamp(14px, 1.6vw, 18px);
     color: #e2e8f0;
     font-weight: 600;
-    padding-top: 2px;
   }
 
-  /* Mobile — stack vertically */
-  @media (max-width: 600px) {
-    .sb-inner { flex-direction: column; gap: 16px; padding: 16px 18px 20px; }
+  @media (max-width: 640px) {
+    .sb-inner { flex-direction: column; padding: 18px 20px 22px; gap: 18px; }
     .sb-divider { width: 100%; height: 1px; margin: 0; }
     .sb-manhours { padding-right: 0; }
+    .sb-number { font-size: 36px; }
   }
-
   .app-grid {
     max-width: 1080px;
     margin: 28px auto 60px;
@@ -822,17 +856,13 @@
         const s = res.settings || {};
         const strip = document.getElementById('stat-strip');
 
-        // Exact same calculation as the reference HTML:
-        // accidentDate fixed at 2023-12-02, workers=1500, shiftHours=8.
-        // Admin can override via Settings; fall back to these defaults.
         const incidentDateStr = s.lastIncidentDate || '2023-12-02';
         const totalWorkers    = Number(s.totalWorkforce) || 1500;
         const shiftHours      = Number(s.shiftHours)     || 8;
         const incidentDate    = new Date(incidentDateStr + 'T00:00:00');
 
         function calcValues() {
-          const now      = new Date();
-          const diffMs   = now - incidentDate;
+          const diffMs   = Date.now() - incidentDate.getTime();
           const diffDays = diffMs / (1000 * 60 * 60 * 24);
           return {
             days:     Math.floor(diffDays),
@@ -840,28 +870,38 @@
           };
         }
 
-        function fmt(n) { return n.toLocaleString('en-US'); }
-
         const lastDateLabel = incidentDate.toLocaleDateString('en-GB', {
           day: '2-digit', month: 'short', year: 'numeric'
         });
 
+        // Build digit-slot HTML for a number string
+        function buildDigits(numStr) {
+          return numStr.split('').map(ch => {
+            if (ch === ',') return `<span class="sb-comma">,</span>`;
+            const slots = Array.from({length: 10}, (_, i) => `<span>${i}</span>`).join('');
+            return `<span class="sb-digit"><span class="sb-digit-inner" data-digit="${ch}">${slots}</span></span>`;
+          }).join('');
+        }
+
+        function fmtMH(n) { return n.toLocaleString('en-US'); }
+
         const initial = calcValues();
 
         strip.innerHTML = `
+          <div class="sb-hazard"></div>
           <div class="safety-banner">
             <div class="sb-inner">
               <div class="sb-manhours">
                 <div class="sb-eyebrow">Accident-free manhours continuously worked</div>
                 <div class="sb-count-row">
-                  <div class="sb-number" id="sb-mh">${fmt(initial.manhours)}</div>
+                  <div class="sb-number" id="sb-mh">${buildDigits(fmtMH(initial.manhours))}</div>
                   <div class="sb-unit">Manhours</div>
                 </div>
               </div>
               <div class="sb-divider"></div>
               <div class="sb-stat">
                 <div class="sb-stat-label">Safe calendar days</div>
-                <div class="sb-stat-value" id="sb-days">${fmt(initial.days)}</div>
+                <div class="sb-stat-value" id="sb-days">${initial.days.toLocaleString('en-US')}</div>
               </div>
               <div class="sb-divider"></div>
               <div class="sb-stat">
@@ -872,28 +912,50 @@
           </div>
         `;
 
-        // Count-up animation for manhours (same easing as reference).
-        const mhEl   = document.getElementById('sb-mh');
-        const target = initial.manhours;
-        const dur    = 1500;
-        let t0       = null;
-        function step(ts) {
-          if (!t0) t0 = ts;
-          const p    = Math.min((ts - t0) / dur, 1);
-          const ease = 1 - Math.pow(1 - p, 5); // same as reference
-          mhEl.textContent = fmt(Math.floor(ease * target));
-          if (p < 1) requestAnimationFrame(step);
-          else mhEl.textContent = fmt(target);
-        }
-        requestAnimationFrame(step);
+        // Animate each digit slot — rolls from 0 up to target digit
+        // with a staggered delay so digits settle one by one right→left
+        function animateDigits(containerEl, targetNum) {
+          const numStr = fmtMH(targetNum);
+          const slots  = containerEl.querySelectorAll('.sb-digit-inner');
+          const digits = numStr.replace(/,/g, '').split('').map(Number);
 
-        // Live tick every second (same as reference setInterval 1000ms).
+          // stagger: rightmost digit first, then cascade left
+          slots.forEach((inner, i) => {
+            const d = digits[i] !== undefined ? digits[i] : 0;
+            const delay = (slots.length - 1 - i) * 60;
+            setTimeout(() => {
+              inner.style.transform = `translateY(-${d * 10}%)`;
+            }, delay);
+          });
+        }
+
+        // Trigger the roll-in after a short pause so user sees it
+        setTimeout(() => {
+          const mhEl = document.getElementById('sb-mh');
+          if (mhEl) animateDigits(mhEl, initial.manhours);
+        }, 300);
+
+        // Live tick every second — update digits that changed
+        function updateDigits(containerEl, newNum) {
+          const numStr  = fmtMH(newNum);
+          const slots   = containerEl.querySelectorAll('.sb-digit-inner');
+          const digits  = numStr.replace(/,/g, '').split('').map(Number);
+          slots.forEach((inner, i) => {
+            const d = digits[i] !== undefined ? digits[i] : 0;
+            const current = Number(inner.dataset.digit);
+            if (current !== d) {
+              inner.dataset.digit = d;
+              inner.style.transform = `translateY(-${d * 10}%)`;
+            }
+          });
+        }
+
         setInterval(() => {
-          const v = calcValues();
-          const mhLive = document.getElementById('sb-mh');
-          const dyLive = document.getElementById('sb-days');
-          if (mhLive) mhLive.textContent = fmt(v.manhours);
-          if (dyLive) dyLive.textContent  = fmt(v.days);
+          const v     = calcValues();
+          const mhEl  = document.getElementById('sb-mh');
+          const dyEl  = document.getElementById('sb-days');
+          if (mhEl) updateDigits(mhEl, v.manhours);
+          if (dyEl) dyEl.textContent = v.days.toLocaleString('en-US');
         }, 1000);
       });
     }
