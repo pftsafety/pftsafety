@@ -383,7 +383,7 @@
     margin: 0;
   }
 
-  /* ---- Safety banner — full width background, content column inside ---- */
+  /* ---- Safety banner — redesign ---- */
   .stat-strip {
     margin: 20px 0 0;
     padding: 0;
@@ -391,99 +391,109 @@
   }
 
   .safety-banner {
-    background: linear-gradient(120deg, #0f2460 0%, #1e3a8a 45%, #1e40af 100%);
+    background: #0c1a3a;
     position: relative;
     overflow: hidden;
   }
 
-  /* animated diagonal shine */
+  /* large decorative ring behind the number */
   .safety-banner::before {
     content: '';
     position: absolute;
-    top: -50%; left: -80%;
-    width: 50%; height: 200%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.055), transparent);
-    transform: skewX(-18deg);
-    animation: sbGlide 7s ease-in-out infinite;
+    top: 50%; left: 22%;
+    transform: translate(-50%, -50%);
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    border: 40px solid rgba(59,130,246,0.06);
     pointer-events: none;
   }
-  @keyframes sbGlide { 0%,60%{ left:-80%; } 100%{ left:180%; } }
-
-  /* hazard stripe — top edge this time */
-  .sb-hazard {
-    height: 5px;
-    background: repeating-linear-gradient(
-      -45deg,
-      #facc15 0px, #facc15 10px,
-      #0f172a 10px, #0f172a 20px
-    );
-    animation: sbStripe 25s linear infinite;
-    background-size: 28px 28px;
+  .safety-banner::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 22%;
+    transform: translate(-50%, -50%);
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    border: 24px solid rgba(59,130,246,0.09);
+    pointer-events: none;
   }
-  @keyframes sbStripe { to { background-position: 200px 0; } }
+
+  /* amber accent bar along the top */
+  .sb-accent {
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, transparent 100%);
+  }
 
   .sb-inner {
     display: flex;
-    align-items: stretch;
-    padding: 22px 32px 26px;
+    align-items: center;
+    padding: 28px 40px 28px 40px;
     gap: 0;
     max-width: 1280px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
   }
 
-  /* left — manhours counter, takes most space */
+  /* left — manhours */
   .sb-manhours {
     flex: 1 1 0;
     min-width: 0;
-    padding-right: 32px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding-right: 40px;
   }
 
   .sb-eyebrow {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: #93c5fd;
+    letter-spacing: 0.22em;
+    color: #f59e0b;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sb-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: #f59e0b;
+    flex-shrink: 0;
   }
 
   .sb-count-row {
     display: flex;
     align-items: flex-end;
-    gap: 10px;
+    gap: 12px;
   }
 
   /* digit slots container */
   .sb-number {
     font-family: 'Oswald', 'Impact', monospace;
-    font-size: clamp(34px, 5vw, 56px);
+    font-size: clamp(38px, 5.5vw, 64px);
     font-weight: 700;
     color: #fff;
-    letter-spacing: 2px;
+    letter-spacing: 4px;
     line-height: 1;
     display: flex;
     align-items: flex-end;
-    gap: 1px;
+    gap: 0;
+    text-shadow: 0 0 40px rgba(99,179,237,0.25);
   }
 
-  /* each individual digit slot */
   .sb-digit {
     display: inline-flex;
     flex-direction: column;
     height: 1em;
     overflow: hidden;
-    position: relative;
   }
 
   .sb-digit-inner {
     display: flex;
     flex-direction: column;
-    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .sb-digit-inner span {
@@ -491,71 +501,95 @@
     line-height: 1em;
     text-align: center;
     display: block;
+    min-width: 0.6em;
   }
 
   .sb-comma {
     font-family: 'Oswald', 'Impact', monospace;
-    font-size: clamp(34px, 5vw, 56px);
-    color: #4b76c8;
+    font-size: clamp(38px, 5.5vw, 64px);
+    color: rgba(255,255,255,0.25);
     line-height: 1;
-    padding-bottom: 2px;
+    letter-spacing: 0;
     align-self: flex-end;
+    margin: 0 1px;
   }
 
   .sb-unit {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    color: #4b76c8;
+    color: rgba(255,255,255,0.35);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding-bottom: 4px;
+    letter-spacing: 0.14em;
+    padding-bottom: 6px;
   }
 
-  /* dividers */
+  /* centre divider */
   .sb-divider {
     width: 1px;
-    background: rgba(255,255,255,0.12);
-    margin: 0 28px;
+    align-self: stretch;
+    background: rgba(255,255,255,0.07);
+    margin: 0 36px;
     flex-shrink: 0;
   }
 
-  /* right stats */
+  /* right stat panels */
+  .sb-stats-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 160px;
+  }
+
   .sb-stat {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    min-width: 130px;
+    gap: 4px;
   }
 
   .sb-stat-label {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #4b76c8;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.35);
     font-weight: 700;
-    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
+  .sb-stat-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sb-stat-label.days-label::before { background: #34d399; }
+  .sb-stat-label.date-label::before { background: #f59e0b; }
 
   .sb-stat-value {
     font-family: 'Oswald', 'Impact', monospace;
-    font-size: clamp(22px, 3vw, 36px);
+    font-size: clamp(26px, 3.2vw, 42px);
     font-weight: 700;
-    color: #10b981;
+    color: #34d399;
     line-height: 1;
+    letter-spacing: 2px;
   }
 
   .sb-stat-value.date-val {
     font-family: var(--font-sans);
-    font-size: clamp(14px, 1.6vw, 18px);
-    color: #e2e8f0;
+    font-size: clamp(14px, 1.5vw, 18px);
+    color: #fcd34d;
     font-weight: 600;
+    letter-spacing: 0.02em;
   }
 
   @media (max-width: 640px) {
-    .sb-inner { flex-direction: column; padding: 16px 16px 20px; gap: 16px; }
+    .sb-inner { flex-direction: column; padding: 24px 20px; gap: 24px; align-items: flex-start; }
     .sb-divider { width: 100%; height: 1px; margin: 0; }
     .sb-manhours { padding-right: 0; }
+    .sb-number { font-size: 38px; }
+    .sb-stats-col { flex-direction: row; gap: 28px; }
   }
+
   .app-grid {
     max-width: 1280px;
     margin: 24px auto 60px;
@@ -893,8 +927,8 @@
         const initial = calcValues();
 
         strip.innerHTML = `
-          <div class="sb-hazard"></div>
           <div class="safety-banner">
+            <div class="sb-accent"></div>
             <div class="sb-inner">
               <div class="sb-manhours">
                 <div class="sb-eyebrow">Accident-free manhours continuously worked</div>
@@ -904,14 +938,15 @@
                 </div>
               </div>
               <div class="sb-divider"></div>
-              <div class="sb-stat">
-                <div class="sb-stat-label">Safe calendar days</div>
-                <div class="sb-stat-value" id="sb-days">${initial.days.toLocaleString('en-US')}</div>
-              </div>
-              <div class="sb-divider"></div>
-              <div class="sb-stat">
-                <div class="sb-stat-label">Last incident date</div>
-                <div class="sb-stat-value date-val">${lastDateLabel}</div>
+              <div class="sb-stats-col">
+                <div class="sb-stat">
+                  <div class="sb-stat-label days-label">Safe calendar days</div>
+                  <div class="sb-stat-value" id="sb-days">${initial.days.toLocaleString('en-US')}</div>
+                </div>
+                <div class="sb-stat">
+                  <div class="sb-stat-label date-label">Last incident date</div>
+                  <div class="sb-stat-value date-val">${lastDateLabel}</div>
+                </div>
               </div>
             </div>
           </div>
