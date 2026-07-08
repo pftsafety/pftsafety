@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PFT Safety">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
@@ -385,28 +387,128 @@
     flex-wrap: wrap;
   }
 
+  /* ---- Manhours hero card ---- */
+  .mh-card {
+    flex: 2 1 340px;
+    min-width: 260px;
+    background: linear-gradient(135deg, #1e3a8a, #172554);
+    border-radius: var(--radius);
+    padding: 20px 22px 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.22);
+  }
+
+  .mh-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -200%;
+    width: 80%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent);
+    transform: skewX(-20deg);
+    animation: mhShimmer 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes mhShimmer {
+    0%, 60% { left: -200%; }
+    100% { left: 250%; }
+  }
+
+  .mh-hazard {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 5px;
+    background: repeating-linear-gradient(
+      -45deg,
+      #facc15, #facc15 8px,
+      #1e293b 8px, #1e293b 16px
+    );
+    animation: mhStripes 30s linear infinite;
+  }
+  @keyframes mhStripes {
+    from { background-position: 0 0; }
+    to { background-position: 200px 0; }
+  }
+
+  .mh-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #93c5fd;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .mh-counter-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .mh-number {
+    font-family: 'Oswald', 'Impact', var(--font-mono);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -1px;
+    line-height: 1;
+    min-width: 0;
+  }
+
+  .mh-unit {
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-bottom: 2px;
+  }
+
+  /* ---- Smaller stat cards ---- */
   .stat-card {
+    flex: 1 1 140px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 16px 18px;
-    min-width: 160px;
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
 
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+    transform-origin: left;
+  }
+  .stat-card:hover::after { transform: scaleX(1); }
+
   .stat-card .label {
-    font-size: 11px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     color: var(--text-muted);
-    margin-bottom: 8px;
+    font-weight: 700;
+    margin-bottom: 6px;
   }
 
   .stat-card .value {
     font-family: var(--font-mono);
-    font-size: 24px;
+    font-size: 22px;
+    color: var(--navy);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-card.highlight .value {
     color: var(--success);
-    font-weight: 600;
   }
 
   .app-grid {
@@ -501,7 +603,8 @@
     .launcher-header h1 { font-size: 19px; }
 
     .stat-strip { padding: 0 16px; margin-top: 16px; }
-    .stat-card { min-width: 140px; }
+    .mh-card { flex: 1 1 100%; }
+    .stat-card { min-width: 120px; }
 
     .app-grid {
       padding: 0 16px 24px;
@@ -705,15 +808,73 @@
         if (!res.ok) return;
         const s = res.settings || {};
         const strip = document.getElementById('stat-strip');
-        const cards = [];
-        if (s.accidentFreeManHours) cards.push(['Accident-free man-hours', s.accidentFreeManHours]);
-        if (s.accidentFreeDays) cards.push(['Accident-free days', s.accidentFreeDays]);
-        strip.innerHTML = cards.map(([label, value]) => `
-          <div class="stat-card">
-            <div class="label">${label}</div>
-            <div class="value">${value}</div>
+
+        // Parse last incident date from settings, or fall back to a stored date.
+        const incidentDate = s.lastIncidentDate ? new Date(s.lastIncidentDate) : null;
+        const totalWorkers = Number(s.totalWorkforce) || 1500;
+        const shiftHours   = Number(s.shiftHours) || 8;
+
+        // Compute live values from the incident date if available, otherwise
+        // fall back to the manually-entered manhours/days from Settings.
+        let manHours = Number(s.accidentFreeManHours) || 0;
+        let safeDays = Number(s.accidentFreeDays) || 0;
+        let lastDate = s.lastIncidentDate || '—';
+
+        if (incidentDate && !isNaN(incidentDate)) {
+          const diffMs   = Date.now() - incidentDate.getTime();
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          safeDays  = Math.floor(diffDays);
+          manHours  = Math.floor(diffDays * totalWorkers * shiftHours);
+          lastDate  = incidentDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        }
+
+        function fmtNum(n) { return Math.round(n).toLocaleString('en-US'); }
+
+        strip.innerHTML = `
+          <div class="mh-card">
+            <div class="mh-label">Accident-free manhours continuously worked</div>
+            <div class="mh-counter-row">
+              <div class="mh-number" id="mh-counter">0</div>
+              <div class="mh-unit">Manhours</div>
+            </div>
+            <div class="mh-hazard"></div>
           </div>
-        `).join('');
+          <div class="stat-card highlight">
+            <div class="label">Safe calendar days</div>
+            <div class="value" id="sc-days">${fmtNum(safeDays)}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Last incident</div>
+            <div class="value" style="font-size:14px; padding-top:4px;">${lastDate}</div>
+          </div>
+        `;
+
+        // Animate the manhours counter from 0 → current value.
+        const el = document.getElementById('mh-counter');
+        const target = manHours;
+        const duration = 1400;
+        let start = null;
+        function step(ts) {
+          if (!start) start = ts;
+          const p = Math.min((ts - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - p, 4);
+          el.textContent = fmtNum(ease * target);
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = fmtNum(target);
+        }
+        requestAnimationFrame(step);
+
+        // If we computed values from a live incident date, tick every second.
+        if (incidentDate && !isNaN(incidentDate)) {
+          setInterval(() => {
+            const diffMs   = Date.now() - incidentDate.getTime();
+            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+            const mh = Math.floor(diffDays * totalWorkers * shiftHours);
+            el.textContent = fmtNum(mh);
+            const daysEl = document.getElementById('sc-days');
+            if (daysEl) daysEl.textContent = fmtNum(Math.floor(diffDays));
+          }, 1000);
+        }
       });
     }
 
