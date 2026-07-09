@@ -1184,25 +1184,22 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.register('/Portal/sw.js', { scope: '/Portal/' })
+          .catch(() => {});
       });
     }
 
-    // Intercept the browser's automatic "Add to Home Screen" prompt and
-    // prevent it from firing on its own. Store it so we can trigger it
-    // manually from the install button in the topbar if the user wants it.
+    // Suppress automatic browser install banner — capture the prompt so we
+    // can trigger it manually from the Install button in the topbar.
     let _installPrompt = null;
 
     window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault(); // suppress the automatic banner
+      e.preventDefault();
       _installPrompt = e;
-      // Show a subtle install button in the topbar now that we know
-      // installation is available on this device/browser.
       const btn = document.getElementById('install-btn');
       if (btn) btn.style.display = 'flex';
     });
 
-    // Hide the install button once the app is actually installed.
     window.addEventListener('appinstalled', () => {
       const btn = document.getElementById('install-btn');
       if (btn) btn.style.display = 'none';
