@@ -379,21 +379,21 @@
   .safety-banner::before {
     content: '';
     position: absolute;
-    top: 50%; left: 22%;
+    top: 50%; left: 17%;
     transform: translate(-50%, -50%);
-    width: 260px; height: 260px;
+    width: 220px; height: 220px;
     border-radius: 50%;
-    border: 40px solid rgba(59,130,246,0.06);
+    border: 36px solid rgba(59,130,246,0.06);
     pointer-events: none;
   }
   .safety-banner::after {
     content: '';
     position: absolute;
-    top: 50%; left: 22%;
+    top: 50%; left: 17%;
     transform: translate(-50%, -50%);
-    width: 160px; height: 160px;
+    width: 130px; height: 130px;
     border-radius: 50%;
-    border: 24px solid rgba(59,130,246,0.09);
+    border: 20px solid rgba(59,130,246,0.09);
     pointer-events: none;
   }
 
@@ -404,12 +404,10 @@
   }
 
   .sb-inner {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
     align-items: center;
-    padding: 28px 40px 28px 40px;
-    gap: 0;
-    max-width: 1280px;
-    margin: 0 auto;
+    padding: 24px 48px;
     width: 100%;
     box-sizing: border-box;
     position: relative;
@@ -418,9 +416,8 @@
 
   /* left — manhours */
   .sb-manhours {
-    flex: 1 1 0;
     min-width: 0;
-    padding-right: 40px;
+    padding-right: 0;
   }
 
   .sb-eyebrow {
@@ -506,8 +503,8 @@
   .sb-divider {
     width: 1px;
     align-self: stretch;
-    background: rgba(255,255,255,0.07);
-    margin: 0 36px;
+    background: rgba(255,255,255,0.08);
+    margin: 0 40px;
     flex-shrink: 0;
   }
 
@@ -515,14 +512,17 @@
   .sb-stats-col {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    min-width: 160px;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
   }
 
   .sb-stat {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    align-items: center;
+    text-align: center;
   }
 
   .sb-stat-label {
@@ -534,6 +534,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    justify-content: center;
   }
   .sb-stat-label::before {
     content: '';
@@ -562,11 +563,12 @@
   }
 
   @media (max-width: 640px) {
-    .sb-inner { flex-direction: column; padding: 24px 20px; gap: 24px; align-items: flex-start; }
+    .sb-inner { grid-template-columns: 1fr; padding: 20px 16px; gap: 20px; }
     .sb-divider { width: 100%; height: 1px; margin: 0; }
     .sb-manhours { padding-right: 0; }
-    .sb-number { font-size: 38px; }
-    .sb-stats-col { flex-direction: row; gap: 28px; }
+    .sb-number { font-size: 32px; }
+    .sb-stats-col { align-items: flex-start; text-align: left; }
+    .sb-stat { align-items: flex-start; }
   }
 
   .app-grid {
@@ -662,11 +664,13 @@
     .form-panel { padding: 28px 20px 40px; }
 
     .stat-strip { margin-top: 0; }
-    .sb-inner { flex-direction: column; padding: 16px 16px 20px; gap: 16px; }
+    .sb-inner { grid-template-columns: 1fr; padding: 20px 16px; gap: 16px; }
     .sb-divider { width: 100%; height: 1px; margin: 0; }
     .sb-manhours { padding-right: 0; }
     .sb-number { font-size: 32px; }
     .sb-stat-value { font-size: 22px; }
+    .sb-stats-col { align-items: flex-start; text-align: left; }
+    .sb-stat { align-items: flex-start; }
 
     .app-grid {
       padding: 0 12px 24px;
@@ -914,6 +918,9 @@
                   <div class="sb-stat-label days-label">Safe calendar days</div>
                   <div class="sb-stat-value" id="sb-days">${initial.days.toLocaleString('en-US')}</div>
                 </div>
+              </div>
+              <div class="sb-divider"></div>
+              <div class="sb-stats-col">
                 <div class="sb-stat">
                   <div class="sb-stat-label date-label">Last incident date</div>
                   <div class="sb-stat-value date-val">${lastDateLabel}</div>
