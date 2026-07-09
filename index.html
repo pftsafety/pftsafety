@@ -146,6 +146,23 @@
   }
   .btn-logout:hover { border-color: var(--border-hover); color: var(--text-primary); }
 
+  .install-btn {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(47,116,245,0.3);
+    color: var(--accent);
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .install-btn:hover { background: rgba(47,116,245,0.18); }
+
   /* ---------- Login view ---------- */
   /* ---------- Login view (split panel, matches provided reference) ---------- */
   :root {
@@ -701,6 +718,12 @@
     <div class="session-chip" id="session-chip">
       <span class="dot"></span>
       <span id="session-username">—</span>
+      <button class="install-btn" id="install-btn" style="display:none;" title="Install app">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4M8 12l4 4 4-4"/><path d="M4 20h16"/>
+        </svg>
+        Install
+      </button>
       <button class="btn-logout" id="btn-logout">Log out</button>
     </div>
   </div>
@@ -1161,11 +1184,37 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {
-          // Non-fatal — app still works without offline caching.
-        });
+        navigator.serviceWorker.register('sw.js').catch(() => {});
       });
     }
+
+    // Intercept the browser's automatic "Add to Home Screen" prompt and
+    // prevent it from firing on its own. Store it so we can trigger it
+    // manually from the install button in the topbar if the user wants it.
+    let _installPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault(); // suppress the automatic banner
+      _installPrompt = e;
+      // Show a subtle install button in the topbar now that we know
+      // installation is available on this device/browser.
+      const btn = document.getElementById('install-btn');
+      if (btn) btn.style.display = 'flex';
+    });
+
+    // Hide the install button once the app is actually installed.
+    window.addEventListener('appinstalled', () => {
+      const btn = document.getElementById('install-btn');
+      if (btn) btn.style.display = 'none';
+      _installPrompt = null;
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+      if (!_installPrompt) return;
+      _installPrompt.prompt();
+      const { outcome } = await _installPrompt.userChoice;
+      if (outcome === 'accepted') _installPrompt = null;
+    });
 
     init();
   </script>
