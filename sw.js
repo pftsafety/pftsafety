@@ -1,64 +1,53 @@
-// PFT Safety Portal — service worker
-// Caches the app shell so the login screen and launcher still load with a
-// flaky or offline factory-floor connection. The API calls themselves
-// (login, validateSession, etc.) always go to the network — only static
-// assets are cached.
+// PFT Safety Portal — service worker v3
+// Scope: /Portal/ (set by manifest.json)
 
-const CACHE_VERSION = 'pft-portal-v2';
+const CACHE_VERSION = 'pft-portal-v3';
 const CORE_ASSETS = [
-  './',
-  './index.html',
-  './config.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  '/Portal/',
+  '/Portal/index.html',
+  '/Portal/config.js',
+  '/Portal/manifest.json',
+  '/Portal/icon-192.png',
+  '/Portal/icon-512.png',
+  '/Portal/change-pin.html',
+  '/Portal/signup.html',
+  '/Portal/admin.html'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(CORE_ASSETS))
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_VERSION).then(c => c.addAll(CORE_ASSETS))
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key))
-      )
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  // Never cache Apps Script API calls — always hit the network
+  if (url.hostname.includes('script.google.com')) return;
+  // Only handle same-origin requests
+  if (url.origin !== self.location.origin) return;
 
-  // Never cache API calls to Apps Script — always hit the network so
-  // login/session checks reflect the real current state.
-  if (url.hostname.includes('script.google.com')) {
-    return;
-  }
-
-  // Only handle same-origin GET requests for the app shell.
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached); // offline — fall back to cache if the network fails
-
-      return cached || networkFetch;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      const fresh = fetch(e.request).then(res => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_VERSION).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => cached);
+      return cached || fresh;
     })
   );
 });
