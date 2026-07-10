@@ -144,24 +144,85 @@
     transition: border-color 0.15s, color 0.15s;
     min-height: 38px;
   }
-  .btn-logout:hover { border-color: var(--border-hover); color: var(--text-primary); }
-
-  .install-btn {
+  /* ---- Install banner (custom, matches reference design) ---- */
+  .install-banner-wrap {
+    max-width: 1280px;
+    margin: 16px auto 0;
+    padding: 0 32px;
     display: none;
-    align-items: center;
-    gap: 5px;
-    background: var(--accent-dim);
-    border: 1px solid rgba(47,116,245,0.3);
-    color: var(--accent);
-    padding: 7px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-    font-family: inherit;
   }
-  .install-btn:hover { background: rgba(47,116,245,0.18); }
+  .install-banner-wrap.show { display: block; }
+
+  .install-banner {
+    background: #eef2ff;
+    border: 1px solid #dbe2fd;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: ibSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes ibSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .install-banner .ib-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #4f5fe8;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .install-banner .ib-icon svg { width: 20px; height: 20px; }
+
+  .install-banner .ib-text { flex: 1; min-width: 0; }
+  .install-banner .ib-title {
+    font-size: 14px; font-weight: 700; color: #1e2358; margin-bottom: 2px;
+  }
+  .install-banner .ib-sub {
+    font-size: 12.5px; color: #5b62a8;
+  }
+
+  .install-banner .ib-actions {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+
+  .ib-install-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: #4f5fe8;
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .ib-install-btn:hover { background: #3f4dd0; }
+  .ib-install-btn svg { width: 14px; height: 14px; }
+
+  .ib-dismiss {
+    background: none; border: none; color: #8890c9;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .ib-dismiss:hover { background: rgba(79,95,232,0.1); }
+  .ib-dismiss svg { width: 15px; height: 15px; }
+
+  @media (max-width: 640px) {
+    .install-banner-wrap { padding: 0 16px; margin-top: 12px; }
+    .install-banner { padding: 12px; gap: 10px; }
+    .install-banner .ib-sub { display: none; }
+    .ib-install-btn span { display: none; }
+    .ib-install-btn { padding: 9px 12px; }
+  }
+
 
   /* ---------- Login view ---------- */
   /* ---------- Login view (split panel, matches provided reference) ---------- */
@@ -718,13 +779,34 @@
     <div class="session-chip" id="session-chip">
       <span class="dot"></span>
       <span id="session-username">—</span>
-      <button class="install-btn" id="install-btn" style="display:none;" title="Install app">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="btn-logout" id="btn-logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="install-banner-wrap" id="install-banner-wrap">
+    <div class="install-banner">
+      <div class="ib-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 16V4M8 12l4 4 4-4"/><path d="M4 20h16"/>
         </svg>
-        Install
-      </button>
-      <button class="btn-logout" id="btn-logout">Log out</button>
+      </div>
+      <div class="ib-text">
+        <div class="ib-title">Add to Home Screen</div>
+        <div class="ib-sub" id="ib-sub">Offline access &amp; faster loads</div>
+      </div>
+      <div class="ib-actions">
+        <button class="ib-install-btn" id="ib-install-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 16V4M8 12l4 4 4-4"/><path d="M4 20h16"/>
+          </svg>
+          <span>Install</span>
+        </button>
+        <button class="ib-dismiss" id="ib-dismiss" title="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1182,38 +1264,6 @@
       location.href = 'signup.html';
     });
 
-    // iOS Safari never fires beforeinstallprompt.
-    // Show a one-time hint directing iOS users to Share → Add to Home Screen.
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.navigator.standalone;
-    if (isIOS && !isStandalone && !localStorage.getItem('pft_ios_hint')) {
-      localStorage.setItem('pft_ios_hint', '1');
-      setTimeout(() => {
-        const banner = document.createElement('div');
-        banner.style.cssText = `
-          position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-          background:#1e3a8a; color:#fff; padding:12px 18px; border-radius:10px;
-          font-size:13px; font-family:inherit; z-index:9999; max-width:300px;
-          text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.25);
-          animation: fadeInUp 0.3s ease;
-        `;
-        banner.innerHTML = `
-          <style>@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}</style>
-          <strong>Install this app</strong><br>
-          Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong>
-          <div style="margin-top:8px">
-            <button onclick="this.parentElement.parentElement.remove()"
-              style="background:rgba(255,255,255,0.2);border:none;color:#fff;
-                     padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px">
-              Got it
-            </button>
-          </div>
-        `;
-        document.body.appendChild(banner);
-        setTimeout(() => banner.remove(), 8000);
-      }, 3000); // show 3s after login so it doesn't clash with page load
-    }
-
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/pftsafety/sw.js', { scope: '/pftsafety/' })
@@ -1221,29 +1271,63 @@
       });
     }
 
-    // Suppress automatic browser install banner — capture the prompt so we
-    // can trigger it manually from the Install button in the topbar.
+    // ---------- Install banner (unified Android + iOS) ----------
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone ||
+      window.matchMedia('(display-mode: standalone)').matches;
+
     let _installPrompt = null;
+    const bannerWrap  = document.getElementById('install-banner-wrap');
+    const installBtn  = document.getElementById('ib-install-btn');
+    const dismissBtn  = document.getElementById('ib-dismiss');
+    const subEl       = document.getElementById('ib-sub');
 
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      _installPrompt = e;
-      const btn = document.getElementById('install-btn');
-      if (btn) btn.style.display = 'flex';
-    });
+    function showInstallBanner() {
+      if (isStandalone) return; // already installed, never show
+      if (sessionStorage.getItem('pft_install_dismissed')) return;
+      bannerWrap.classList.add('show');
+    }
 
-    window.addEventListener('appinstalled', () => {
-      const btn = document.getElementById('install-btn');
-      if (btn) btn.style.display = 'none';
-      _installPrompt = null;
-    });
+    function hideInstallBanner() {
+      bannerWrap.classList.remove('show');
+      sessionStorage.setItem('pft_install_dismissed', '1');
+    }
 
-    document.getElementById('install-btn').addEventListener('click', async () => {
-      if (!_installPrompt) return;
-      _installPrompt.prompt();
-      const { outcome } = await _installPrompt.userChoice;
-      if (outcome === 'accepted') _installPrompt = null;
-    });
+    dismissBtn.addEventListener('click', hideInstallBanner);
+
+    if (isIOS) {
+      // No native prompt exists on iOS — button just shows instructions.
+      subEl.textContent = 'Tap Share, then "Add to Home Screen"';
+      installBtn.querySelector('span').textContent = 'How?';
+      installBtn.addEventListener('click', () => {
+        alert('Tap the Share button (⬆️) in Safari\'s toolbar, then choose "Add to Home Screen".');
+      });
+      if (!isStandalone) {
+        setTimeout(showInstallBanner, 1500);
+      }
+    } else {
+      // Android/Chrome/Edge — capture the real install prompt.
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        _installPrompt = e;
+        showInstallBanner();
+      });
+
+      window.addEventListener('appinstalled', () => {
+        hideInstallBanner();
+        _installPrompt = null;
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!_installPrompt) return;
+        _installPrompt.prompt();
+        const { outcome } = await _installPrompt.userChoice;
+        if (outcome === 'accepted') {
+          _installPrompt = null;
+          bannerWrap.classList.remove('show');
+        }
+      });
+    }
 
     init();
   </script>
