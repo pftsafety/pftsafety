@@ -1182,9 +1182,41 @@
       location.href = 'signup.html';
     });
 
+    // iOS Safari never fires beforeinstallprompt.
+    // Show a one-time hint directing iOS users to Share → Add to Home Screen.
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone;
+    if (isIOS && !isStandalone && !localStorage.getItem('pft_ios_hint')) {
+      localStorage.setItem('pft_ios_hint', '1');
+      setTimeout(() => {
+        const banner = document.createElement('div');
+        banner.style.cssText = `
+          position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+          background:#1e3a8a; color:#fff; padding:12px 18px; border-radius:10px;
+          font-size:13px; font-family:inherit; z-index:9999; max-width:300px;
+          text-align:center; box-shadow:0 8px 24px rgba(0,0,0,0.25);
+          animation: fadeInUp 0.3s ease;
+        `;
+        banner.innerHTML = `
+          <style>@keyframes fadeInUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}</style>
+          <strong>Install this app</strong><br>
+          Tap <strong>Share ↑</strong> then <strong>"Add to Home Screen"</strong>
+          <div style="margin-top:8px">
+            <button onclick="this.parentElement.parentElement.remove()"
+              style="background:rgba(255,255,255,0.2);border:none;color:#fff;
+                     padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px">
+              Got it
+            </button>
+          </div>
+        `;
+        document.body.appendChild(banner);
+        setTimeout(() => banner.remove(), 8000);
+      }, 3000); // show 3s after login so it doesn't clash with page load
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/Portal/sw.js', { scope: '/Portal/' })
+        navigator.serviceWorker.register('/pftsafety/sw.js', { scope: '/pftsafety/' })
           .catch(() => {});
       });
     }

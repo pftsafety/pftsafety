@@ -1,22 +1,25 @@
-// PFT Safety Portal — service worker v3
-// Scope: /Portal/ (set by manifest.json)
+// PFT Safety Portal — service worker
+// Scope: /pftsafety/
 
-const CACHE_VERSION = 'pft-portal-v3';
+const CACHE_VERSION = 'pft-portal-v4';
 const CORE_ASSETS = [
-  '/Portal/',
-  '/Portal/index.html',
-  '/Portal/config.js',
-  '/Portal/manifest.json',
-  '/Portal/icon-192.png',
-  '/Portal/icon-512.png',
-  '/Portal/change-pin.html',
-  '/Portal/signup.html',
-  '/Portal/admin.html'
+  '/pftsafety/',
+  '/pftsafety/index.html',
+  '/pftsafety/config.js',
+  '/pftsafety/auth-guard.js',
+  '/pftsafety/manifest.json',
+  '/pftsafety/icon-192.png',
+  '/pftsafety/icon-512.png',
+  '/pftsafety/change-pin.html',
+  '/pftsafety/signup.html',
+  '/pftsafety/admin.html'
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_VERSION).then(c => c.addAll(CORE_ASSETS))
+    caches.open(CACHE_VERSION)
+      .then(c => c.addAll(CORE_ASSETS))
+      .catch(() => {})
   );
   self.skipWaiting();
 });
@@ -24,7 +27,9 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))
+      Promise.all(
+        keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
@@ -33,9 +38,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // Never cache Apps Script API calls — always hit the network
   if (url.hostname.includes('script.google.com')) return;
-  // Only handle same-origin requests
   if (url.origin !== self.location.origin) return;
 
   e.respondWith(
