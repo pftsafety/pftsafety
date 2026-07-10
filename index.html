@@ -966,9 +966,17 @@
         if (!res.ok || !res.apps) return;
         try { sessionStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
         renderGrid(res.apps);
+        // Preload now that we actually have the URLs in hand — no polling,
+        // no race condition with sessionStorage timing.
+        preloadApps(res.apps.map(a => a.url));
       }).catch(() => {
         if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
       });
+
+      // If we rendered from cache immediately, also kick off preload
+      // immediately using those cached URLs rather than waiting on the
+      // network call above.
+      if (cached && cached.length) preloadApps(cached.map(a => a.url));
 
       api('getSettings', {}).then(res => {
         if (!res.ok) return;
@@ -1081,68 +1089,53 @@
           if (dyEl) dyEl.textContent = v.days.toLocaleString('en-US');
         }, 1000);
       });
-
-      // Preload all app URLs in the background so tapping a tile
-      // opens an already-cached page instead of a cold load.
-      preloadApps();
     }
 
-    // Injects hidden <link rel="prefetch"> tags for every app URL.
-    // Uses prefetch (not preload) — it's a low-priority background hint
-    // that downloads the page when the browser is idle, without blocking
-    // anything the user is currently doing.
-    // Falls back to fetch() on browsers that don't support <link prefetch>
-    // (older Safari/iOS versions).
-    function preloadApps() {
+    // Preloads all app URLs so tapping a tile opens an already-fetched page
+    // instead of a cold load. Uses the Speculation Rules API where
+    // supported (Chrome/Edge) — it's the modern successor to
+    // <link rel="prefetch"> for document navigation: not blocked by
+    // Cache-Control the same way, and visible in DevTools under
+    // Application → Speculative loads. Falls back to <link rel="prefetch">
+    // on browsers without Speculation Rules support.
+    function preloadApps(urls) {
       const PRELOAD_KEY = 'pft_preloaded';
-      // Only preload once per session — not on every back-navigation.
-      if (sessionStorage.getItem(PRELOAD_KEY)) return;
+      if (sessionStorage.getItem(PRELOAD_KEY)) return; // once per tab session
+      if (!urls || !urls.length) return;
+
+      const validUrls = urls.filter(u => u && u.startsWith('http'));
+      if (!validUrls.length) return;
+
       sessionStorage.setItem(PRELOAD_KEY, '1');
 
-      const cached = (() => {
-        try { return JSON.parse(sessionStorage.getItem('pft_apps_cache')); }
-        catch (e) { return null; }
-      })();
+      const supportsSpecRules = 'HTMLScriptElement' in window &&
+        HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules');
 
-      function injectPrefetch(urls) {
-        const supportsLink = 'relList' in document.createElement('link') &&
-                             document.createElement('link').relList.supports('prefetch');
-        urls.forEach(url => {
-          if (!url || !url.startsWith('http')) return;
-          if (supportsLink) {
-            const link  = document.createElement('link');
-            link.rel    = 'prefetch';
-            link.href   = url;
-            link.as     = 'document';
-            document.head.appendChild(link);
-          } else {
-            // Fallback: silent fetch with lowest priority
-            fetch(url, { priority: 'low', mode: 'no-cors', credentials: 'omit' }).catch(() => {});
-          }
+      if (supportsSpecRules) {
+        const script = document.createElement('script');
+        script.type = 'speculationrules';
+        script.textContent = JSON.stringify({
+          prefetch: [{ source: 'list', urls: validUrls, eagerness: 'immediate' }]
         });
-      }
-
-      // If apps are already cached from this session, prefetch immediately.
-      if (cached && cached.length) {
-        injectPrefetch(cached.map(a => a.url));
+        document.head.appendChild(script);
         return;
       }
 
-      // Otherwise wait for getApps to resolve (it's already in flight from
-      // renderGrid above — this just reacts to sessionStorage being populated).
-      const poll = setInterval(() => {
-        const apps = (() => {
-          try { return JSON.parse(sessionStorage.getItem('pft_apps_cache')); }
-          catch (e) { return null; }
-        })();
-        if (apps && apps.length) {
-          clearInterval(poll);
-          injectPrefetch(apps.map(a => a.url));
-        }
-      }, 300);
+      // Fallback for browsers without Speculation Rules support.
+      const supportsLinkPrefetch = 'relList' in document.createElement('link') &&
+        document.createElement('link').relList.supports('prefetch');
 
-      // Give up after 10 seconds if apps never load.
-      setTimeout(() => clearInterval(poll), 10000);
+      validUrls.forEach(url => {
+        if (supportsLinkPrefetch) {
+          const link = document.createElement('link');
+          link.rel  = 'prefetch';
+          link.href = url;
+          link.as   = 'document';
+          document.head.appendChild(link);
+        } else {
+          fetch(url, { mode: 'no-cors', credentials: 'omit' }).catch(() => {});
+        }
+      });
     }
 
     async function init() {
