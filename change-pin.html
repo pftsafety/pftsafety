@@ -222,6 +222,20 @@
           msg.textContent = res.error || 'Could not update PIN.';
           return;
         }
+
+        // If this device has a saved biometric login for this user, keep
+        // its stored PIN in sync so quick-unlock doesn't submit a stale one.
+        try {
+          const savedRaw = localStorage.getItem('pft_saved_login');
+          if (savedRaw) {
+            const saved = JSON.parse(savedRaw);
+            if (saved && saved.username === session.username) {
+              saved.pin = newPin;
+              localStorage.setItem('pft_saved_login', JSON.stringify(saved));
+            }
+          }
+        } catch (e) { /* non-fatal */ }
+
         msg.className = 'form-msg success';
         msg.textContent = 'PIN updated. Redirecting…';
         setTimeout(() => { location.href = 'index.html'; }, 900);
