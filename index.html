@@ -649,12 +649,49 @@
     .sb-stat { align-items: flex-start; }
   }
 
+  .app-search-wrap {
+    max-width: 1280px;
+    margin: 22px auto 0;
+    padding: 0 32px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .app-search-box {
+    position: relative;
+    max-width: 300px;
+  }
+
+  .app-search-box svg {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height: 15px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .app-search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px 9px 36px;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    font-family: inherit;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+  }
+  .app-search:focus { outline: none; border-color: var(--accent); }
+  .app-search::placeholder { color: var(--text-muted); }
+
   .app-grid {
     max-width: 1280px;
-    margin: 24px auto 60px;
+    margin: 14px auto 60px;
     padding: 0 32px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 14px;
     width: 100%;
     box-sizing: border-box;
@@ -663,46 +700,79 @@
   .app-tile {
     background: var(--surface);
     border: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-top-width: 3px;
+    border-top-color: var(--tile-accent, var(--accent));
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 22px 20px 20px;
     text-decoration: none;
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    transition: border-color 0.15s, transform 0.15s, background 0.15s;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
   }
 
   .app-tile:hover {
-    border-color: var(--accent);
-    background: var(--surface-raised);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px -10px var(--tile-tint-border, rgba(47,116,245,0.35));
+    border-color: var(--tile-accent, var(--accent));
+    border-top-color: var(--tile-accent, var(--accent));
   }
 
   .app-tile .icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px;
-    background: var(--accent-dim);
-    border: 1px solid rgba(59, 130, 246, 0.35);
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--tile-tint, var(--accent-dim));
+    border: 1px solid var(--tile-tint-border, rgba(47,116,245,0.3));
+    color: var(--tile-accent, var(--accent));
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--accent);
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+  }
+  .app-tile:hover .icon {
+    background: var(--tile-accent, var(--accent));
+    border-color: var(--tile-accent, var(--accent));
+    color: #fff;
   }
 
-  .app-tile .icon svg { width: 19px; height: 19px; }
+  .app-tile .icon svg { width: 22px; height: 22px; }
 
   .app-tile .name {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .app-tile .desc {
     font-size: 12px;
     color: var(--text-muted);
-    line-height: 1.4;
-    margin-top: -8px;
+    line-height: 1.45;
+  }
+
+  .app-tile .arrow {
+    position: absolute;
+    top: 22px; right: 18px;
+    width: 15px; height: 15px;
+    color: var(--tile-accent, var(--accent));
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.18s, transform 0.18s;
+  }
+  .app-tile:hover .arrow { opacity: 1; transform: translate(0,0); }
+
+  .app-empty-state {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
   }
 
   .admin-link {
@@ -750,13 +820,24 @@
     .sb-stats-col { align-items: flex-start; text-align: left; }
     .sb-stat { align-items: flex-start; }
 
+    .app-search-wrap { padding: 0 16px; margin-top: 16px; }
+    .app-search-box { max-width: 100%; }
+
     .app-grid {
-      padding: 0 12px 24px;
+      padding: 0 16px 24px;
       grid-template-columns: 1fr;
-      margin-bottom: 24px;
+      margin: 12px 0 24px;
     }
-    .app-tile { padding: 18px; flex-direction: row; align-items: center; }
+    .app-tile {
+      padding: 16px;
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+      border-top-width: 1px;
+      border-left: 3px solid var(--tile-accent, var(--accent));
+    }
     .app-tile .desc { display: none; }
+    .app-tile .arrow { display: none; }
 
     .admin-link { padding: 0 16px; margin-bottom: 24px; }
   }
@@ -899,6 +980,15 @@
   <div id="app-view">
     <div class="stat-strip" id="stat-strip"></div>
 
+    <div class="app-search-wrap">
+      <div class="app-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input type="text" class="app-search" id="app-search" placeholder="Search apps…">
+      </div>
+    </div>
+
     <div class="app-grid" id="app-grid"></div>
 
     <div class="admin-link" id="admin-link" style="display:none;">
@@ -927,6 +1017,83 @@
       folder: '<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>',
       users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 9a3 3 0 0 1 0 6"/><path d="M21 20a5.5 5.5 0 0 0-4-5.3"/>'
     };
+
+    // One accent colour per icon key, carried over from the same palette
+    // used for each sub-app's own PWA icon — so a tile's colour on the
+    // launcher matches that app's home-screen icon and browser theme colour.
+    const ICON_COLORS = {
+      shield: '#0ea5e9',        // PPE Issue
+      qr: '#8b5cf6',            // PTW Scanner
+      boot: '#f97316',          // Safety Shoe Issue
+      clipboard: '#10b981',     // PR Tracker
+      extinguisher: '#ef4444',  // Fire Extinguishers
+      triangle: '#f59e0b',      // AITR
+      chart: '#ec4899',         // Injury Analysis
+      'circle-alert': '#06b6d4',// Nearmiss
+      gear: '#64748b',
+      folder: '#eab308',
+      users: '#14b8a6',
+      link: '#2f74f5'
+    };
+
+    function hexToRgb(hex) {
+      const h = hex.replace('#', '');
+      const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+      const n = parseInt(full, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+    function rgbaFromHex(hex, alpha) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    // Top-level so both the initial render and the search filter (attached
+    // once, outside renderLauncher) always operate on the current app list.
+    let _allApps = [];
+
+    function renderGridRaw(apps, emptyMessage) {
+      const grid = document.getElementById('app-grid');
+      if (!grid) return;
+      if (!apps || !apps.length) {
+        grid.innerHTML = `<p class="app-empty-state">${emptyMessage || 'No apps configured yet.'}</p>`;
+        return;
+      }
+      grid.innerHTML = apps.map(app => {
+        const color = ICON_COLORS[app.icon] || ICON_COLORS.link;
+        const tint = rgbaFromHex(color, 0.12);
+        const tintBorder = rgbaFromHex(color, 0.32);
+        return `
+          <a class="app-tile" href="${app.url}" style="--tile-accent:${color}; --tile-tint:${tint}; --tile-tint-border:${tintBorder};">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
+            <div class="name">${app.name}</div>
+            <div class="desc">${app.description || ''}</div>
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        `;
+      }).join('');
+    }
+
+    // Called whenever a fresh app list arrives (from cache or network) —
+    // remembers the full list so search can filter without a refetch.
+    function renderGrid(apps) {
+      _allApps = apps || [];
+      const searchInput = document.getElementById('app-search');
+      const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      if (!q) { renderGridRaw(_allApps, 'No apps configured yet.'); return; }
+      const filtered = _allApps.filter(a =>
+        a.name.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)
+      );
+      renderGridRaw(filtered, 'No apps match your search.');
+    }
+
+    document.getElementById('app-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { renderGridRaw(_allApps, 'No apps configured yet.'); return; }
+      const filtered = _allApps.filter(a =>
+        a.name.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)
+      );
+      renderGridRaw(filtered, 'No apps match your search.');
+    });
 
     function getSession() {
       try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
@@ -1046,20 +1213,6 @@
       // fire another Apps Script round-trip just to re-render the same tiles.
       const APPS_CACHE_KEY = 'pft_apps_cache';
       const cached = (() => { try { return JSON.parse(sessionStorage.getItem(APPS_CACHE_KEY)); } catch (e) { return null; } })();
-
-      function renderGrid(apps) {
-        if (!apps || !apps.length) {
-          grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">No apps configured yet.</p>';
-          return;
-        }
-        grid.innerHTML = apps.map(app => `
-          <a class="app-tile" href="${app.url}">
-            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
-            <div class="name">${app.name}</div>
-            <div class="desc">${app.description || ''}</div>
-          </a>
-        `).join('');
-      }
 
       // Render from cache immediately if available, then refresh in background
       // once the combined getLauncherData call below resolves.
