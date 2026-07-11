@@ -1061,23 +1061,13 @@
         `).join('');
       }
 
-      // Render from cache immediately if available, then refresh in background.
+      // Render from cache immediately if available, then refresh in background
+      // once the combined getLauncherData call below resolves.
       if (cached) renderGrid(cached);
-
-      api('getApps', {}).then(res => {
-        if (!res.ok || !res.apps) return;
-        try { sessionStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
-        renderGrid(res.apps);
-        // Preload now that we actually have the URLs in hand — no polling,
-        // no race condition with sessionStorage timing.
-        preloadApps(res.apps.map(a => a.url));
-      }).catch(() => {
-        if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
-      });
 
       // If we rendered from cache immediately, also kick off preload
       // immediately using those cached URLs rather than waiting on the
-      // network call above.
+      // network call below.
       if (cached && cached.length) preloadApps(cached.map(a => a.url));
 
       // ---- Manhours banner: instant from cache, refreshed in background ----
@@ -1216,12 +1206,29 @@
         `;
       }
 
-      api('getSettings', {}).then(res => {
-        if (!res.ok) return;
-        const s = res.settings || {};
-        const isFirstRender = !cachedSettings;
-        setCachedSettings(s);
-        renderBanner(s, isFirstRender);
+      // Single round trip for both the app grid and the banner — two
+      // separate near-simultaneous Apps Script calls tend to queue behind
+      // each other rather than run in parallel, which is what caused the
+      // banner to visibly lag behind the icons.
+      api('getLauncherData', {}).then(res => {
+        if (!res.ok) {
+          if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
+          return;
+        }
+
+        if (res.apps) {
+          try { sessionStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
+          renderGrid(res.apps);
+          preloadApps(res.apps.map(a => a.url));
+        }
+
+        if (res.settings) {
+          const isFirstRender = !cachedSettings;
+          setCachedSettings(res.settings);
+          renderBanner(res.settings, isFirstRender);
+        }
+      }).catch(() => {
+        if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
       });
     }
 
