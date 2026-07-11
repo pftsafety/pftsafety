@@ -242,6 +242,58 @@
   .badge-warn { background: rgba(217,119,6,0.10); color: #92400e; border: 1px solid rgba(217,119,6,0.3); }
 
   .user-row .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .activity-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row .a-time {
+    font-family: var(--font-mono, monospace);
+    color: var(--text-muted);
+    width: 150px;
+    flex-shrink: 0;
+  }
+  .activity-row .a-user {
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 110px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .activity-row .a-detail {
+    color: var(--text-secondary);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .activity-list-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .activity-header-row {
+    display: flex; gap: 12px; padding: 8px 14px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); font-weight: 700;
+    border-bottom: 1px solid var(--border); background: var(--bg);
+  }
+  .activity-header-row .a-time { width: 150px; flex-shrink: 0; }
+  .activity-header-row .a-user { width: 110px; flex-shrink: 0; }
+
+  .badge-success { background: var(--success-dim); color: #15803d; border: 1px solid rgba(22,163,74,0.3); }
+  .badge-fail { background: var(--danger-dim); color: #b91c1c; border: 1px solid rgba(220,38,38,0.3); }
+  .badge-lockout { background: rgba(217,119,6,0.10); color: #92400e; border: 1px solid rgba(217,119,6,0.3); }
+  .badge-neutral { background: rgba(91,100,114,0.08); color: var(--text-secondary); border: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -259,6 +311,7 @@
     <button class="tab-btn" data-tab="pending">Pending signups</button>
     <button class="tab-btn" data-tab="users">Users</button>
     <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn" data-tab="activity">Activity log</button>
   </div>
 
   <!-- ============ APP LINKS ============ -->
@@ -364,6 +417,22 @@
     </div>
   </div>
 
+  <!-- ============ ACTIVITY LOG ============ -->
+  <div class="panel" id="panel-activity">
+    <div class="section-head">
+      <h2>Activity log</h2>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="activity-search" placeholder="Filter by username…"
+          style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+                 padding:8px 12px; font-size:13px; color:var(--text-primary); width:180px;">
+        <button class="btn-ghost" id="activity-refresh">Refresh</button>
+      </div>
+    </div>
+    <div id="activity-list">
+      <p class="empty-state">Loading…</p>
+    </div>
+  </div>
+
   <script src="config.js"></script>
   <script>
     const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
@@ -408,6 +477,38 @@
       btn.disabled = true;
       btn.textContent = loadingText || '…';
       return () => { btn.disabled = false; btn.textContent = original; };
+    }
+
+    // On-brand confirm modal — resolves true/false based on choice.
+    function showConfirmModal(opts) {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position:fixed; inset:0; background:rgba(15,23,42,0.45);
+          display:flex; align-items:center; justify-content:center;
+          z-index:9999; padding:20px;
+        `;
+        overlay.innerHTML = `
+          <div style="background:#fff; border-radius:14px; max-width:320px; width:100%;
+                      padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25);">
+            <h3 style="margin:0 0 8px; font-size:16px; color:#16213d;">${opts.title}</h3>
+            <p style="margin:0 0 20px; font-size:13px; color:#5b6472; line-height:1.5;">${opts.message}</p>
+            <div style="display:flex; gap:8px;">
+              <button id="cm-confirm" style="flex:1; background:${opts.danger ? '#dc2626' : '#12244a'}; color:#fff; border:none;
+                padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                ${opts.confirmLabel || 'Confirm'}
+              </button>
+              <button id="cm-cancel" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
+                padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
+                ${opts.cancelLabel || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#cm-confirm').addEventListener('click', () => { overlay.remove(); resolve(true); });
+        overlay.querySelector('#cm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
+      });
     }
 
     // ---------- Auth gate ----------
@@ -721,15 +822,82 @@
       msg.textContent = 'Saved.';
     });
 
-    // ---------- Init — all four panels load in parallel ----------
+    // ---------- Activity log ----------
+    let _activityCache = [];
+
+    function statusBadgeClass(status) {
+      switch (status) {
+        case 'success': return 'badge-success';
+        case 'fail':    return 'badge-fail';
+        case 'lockout': return 'badge-lockout';
+        case 'error':   return 'badge-fail';
+        default:        return 'badge-neutral'; // forgot-pin-request, etc.
+      }
+    }
+
+    function renderActivity(logs) {
+      const list = document.getElementById('activity-list');
+      if (!logs.length) {
+        list.innerHTML = '<p class="empty-state">No activity yet.</p>';
+        return;
+      }
+      list.innerHTML = `
+        <div class="activity-list-wrap">
+          <div class="activity-header-row">
+            <span class="a-time">Time</span>
+            <span class="a-user">User</span>
+            <span>Status</span>
+          </div>
+          ${logs.map(l => `
+            <div class="activity-row">
+              <span class="a-time">${new Date(l.timestamp).toLocaleString()}</span>
+              <span class="a-user">${l.username}</span>
+              <span class="badge ${statusBadgeClass(l.status)}" style="flex-shrink:0;">${l.status}</span>
+              <span class="a-detail">${l.detail || ''}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function loadActivity() {
+      const list = document.getElementById('activity-list');
+      list.innerHTML = '<p class="empty-state">Loading…</p>';
+      const res = await api('getLoginLogs', { token: TOKEN, limit: 300 });
+      if (!res.ok) {
+        list.innerHTML = `<p class="empty-state">${res.error || 'Could not load activity.'}</p>`;
+        return;
+      }
+      _activityCache = res.logs || [];
+      renderActivity(_activityCache);
+    }
+
+    document.getElementById('activity-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { renderActivity(_activityCache); return; }
+      renderActivity(_activityCache.filter(l => l.username.toLowerCase().includes(q)));
+    });
+
+    document.getElementById('activity-refresh').addEventListener('click', loadActivity);
+
+    // ---------- Init — all panels load in parallel ----------
     (async function init() {
       const ok = await requireAdmin();
       if (!ok) return;
       // Fire all fetches at once instead of sequentially.
-      Promise.all([loadApps(), loadPending(), loadUsers(), loadSettings()]);
+      Promise.all([loadApps(), loadPending(), loadUsers(), loadSettings(), loadActivity()]);
     })();
 
-    document.getElementById('admin-logout').addEventListener('click', () => {
+    document.getElementById('admin-logout').addEventListener('click', async () => {
+      const confirmed = await showConfirmModal({
+        title: 'Log out?',
+        message: "You'll need to sign in again to access the admin panel.",
+        confirmLabel: 'Log out',
+        cancelLabel: 'Cancel',
+        danger: true
+      });
+      if (!confirmed) return;
+
       const token = TOKEN;
       localStorage.removeItem(SESSION_KEY);
       location.href = 'index.html';
