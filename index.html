@@ -1100,11 +1100,14 @@
       <aside class="reminders-panel">
         <div class="reminders-header">
           <h3>Reminders</h3>
-          <button class="add-reminder-btn" id="add-reminder-btn" title="Add reminder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <a id="manage-reminders-link" style="font-size:11.5px; color:var(--accent); cursor:pointer; text-decoration:none; font-weight:600;">Manage</a>
+            <button class="add-reminder-btn" id="add-reminder-btn" title="Add reminder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div id="reminders-list">
           <p class="reminders-empty">Loading…</p>
@@ -1659,32 +1662,36 @@
       renderReminders(_remindersCache);
     }
 
-    function renderReminders(reminders) {
-      const list = document.getElementById('reminders-list');
-      if (!reminders.length) {
-        list.innerHTML = '<p class="reminders-empty">No reminders yet. Tap + to add one.</p>';
-        return;
-      }
-      list.innerHTML = reminders.map(r => {
-        const soon = r.daysUntil <= 14;
-        const dateLabel = new Date(r.nextOccurrence + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        const daysLabel = r.daysUntil === 0 ? 'Today' : r.daysUntil === 1 ? 'Tomorrow' : r.daysUntil < 0 ? 'Past' : `In ${r.daysUntil}d`;
-        return `
-          <div class="reminder-item" data-id="${r.id}">
-            <div class="reminder-top-row">
-              <div style="min-width:0;">
-                <div class="reminder-title">${r.title}</div>
-                <div class="reminder-meta">
-                  <span>${dateLabel}</span>
-                  <span>·</span>
-                  <span>${daysLabel}</span>
-                  ${soon ? '<span class="reminder-badge soon">Soon</span>' : ''}
-                  ${r.visibility === 'public' ? '<span class="reminder-badge public">Public</span>' : ''}
-                  ${r.recurrence === 'yearly' ? '<span class="reminder-badge yearly">Yearly</span>' : ''}
-                </div>
-                ${r.description ? `<div class="reminder-desc">${r.description}</div>` : ''}
-                ${r.visibility === 'public' && !r.isOwner ? `<div class="reminder-meta" style="margin-top:4px;">by ${r.username}</div>` : ''}
+    // Shared markup for one reminder row — used by both the compact
+    // sidebar (delete only) and the "Manage" modal (edit + delete).
+    function buildReminderItemHTML(r, showEdit) {
+      const soon = r.daysUntil <= 14;
+      const dateLabel = new Date(r.nextOccurrence + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const daysLabel = r.daysUntil === 0 ? 'Today' : r.daysUntil === 1 ? 'Tomorrow' : r.daysUntil < 0 ? 'Past' : `In ${r.daysUntil}d`;
+      return `
+        <div class="reminder-item" data-id="${r.id}">
+          <div class="reminder-top-row">
+            <div style="min-width:0;">
+              <div class="reminder-title">${r.title}</div>
+              <div class="reminder-meta">
+                <span>${dateLabel}</span>
+                <span>·</span>
+                <span>${daysLabel}</span>
+                ${soon ? '<span class="reminder-badge soon">Soon</span>' : ''}
+                ${r.recurrence === 'yearly' ? '<span class="reminder-badge yearly">Yearly</span>' : ''}
               </div>
+              ${r.description ? `<div class="reminder-desc">${r.description}</div>` : ''}
+              ${r.visibility === 'public' && !r.isOwner ? `<div class="reminder-meta" style="margin-top:4px;">by ${r.username}</div>` : ''}
+            </div>
+            <div style="display:flex; gap:4px; flex-shrink:0;">
+              ${r.isOwner && showEdit ? `
+                <button class="reminder-edit" data-id="${r.id}" title="Edit" style="background:none; border:none; color:var(--text-muted);
+                  width:20px; height:20px; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                  </svg>
+                </button>
+              ` : ''}
               ${r.isOwner ? `
                 <button class="reminder-del" data-id="${r.id}" title="Delete">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1694,10 +1701,12 @@
               ` : ''}
             </div>
           </div>
-        `;
-      }).join('');
+        </div>
+      `;
+    }
 
-      list.querySelectorAll('.reminder-del').forEach(btn => {
+    function wireDeleteButtons(container, onDone) {
+      container.querySelectorAll('.reminder-del').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.dataset.id;
           const confirmed = await showConfirmModal({
@@ -1710,12 +1719,82 @@
           if (!confirmed) return;
           const session = getSession();
           await api('deleteReminder', { token: session.token, id });
-          loadReminders();
+          await loadReminders();
+          if (onDone) onDone();
         });
       });
     }
 
-    function showAddReminderModal() {
+    function wireEditButtons(container, onDone) {
+      container.querySelectorAll('.reminder-edit').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const reminder = _remindersCache.find(r => r.id === id);
+          if (!reminder) return;
+          const saved = await showAddReminderModal(reminder);
+          if (saved) {
+            await loadReminders();
+            if (onDone) onDone();
+          }
+        });
+      });
+    }
+
+    // Sidebar — only reminders inside their own alert window (or already
+    // due/overdue). Reminders far in the future stay out of sight until
+    // they're actually relevant.
+    function renderReminders(reminders) {
+      const list = document.getElementById('reminders-list');
+      const due = reminders.filter(r => r.due);
+      if (!due.length) {
+        list.innerHTML = '<p class="reminders-empty">No due reminders. Tap + to add one, or Manage to see all.</p>';
+        return;
+      }
+      list.innerHTML = due.map(r => buildReminderItemHTML(r, false)).join('');
+      wireDeleteButtons(list);
+    }
+
+    // "Manage" modal — every reminder visible to the user (due or not),
+    // with edit + delete for the ones they own.
+    function showManageRemindersModal() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position:fixed; inset:0; background:rgba(15,23,42,0.45);
+        display:flex; align-items:center; justify-content:center;
+        z-index:9999; padding:20px;
+      `;
+      overlay.innerHTML = `
+        <div style="background:#fff; border-radius:14px; max-width:420px; width:100%;
+                    padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25); max-height:80vh; display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <h3 style="margin:0; font-size:16px; color:#16213d;">All reminders</h3>
+            <button id="mr-close" style="background:none; border:none; color:#8892a0; cursor:pointer; width:26px; height:26px;">✕</button>
+          </div>
+          <div id="mr-list" style="overflow-y:auto; flex:1;"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      function refresh() {
+        const listEl = overlay.querySelector('#mr-list');
+        if (!_remindersCache.length) {
+          listEl.innerHTML = '<p class="reminders-empty">No reminders yet.</p>';
+          return;
+        }
+        listEl.innerHTML = _remindersCache.map(r => buildReminderItemHTML(r, true)).join('');
+        wireDeleteButtons(listEl, refresh);
+        wireEditButtons(listEl, refresh);
+      }
+      refresh();
+
+      overlay.querySelector('#mr-close').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    document.getElementById('manage-reminders-link').addEventListener('click', showManageRemindersModal);
+
+    function showAddReminderModal(existingReminder) {
+      const isEdit = !!existingReminder;
       return new Promise(resolve => {
         const overlay = document.createElement('div');
         overlay.style.cssText = `
@@ -1726,7 +1805,7 @@
         overlay.innerHTML = `
           <div style="background:#fff; border-radius:14px; max-width:360px; width:100%;
                       padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
-            <h3 style="margin:0 0 16px; font-size:16px; color:#16213d;">Add reminder</h3>
+            <h3 style="margin:0 0 16px; font-size:16px; color:#16213d;">${isEdit ? 'Edit reminder' : 'Add reminder'}</h3>
 
             <div style="margin-bottom:12px;">
               <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Title</label>
@@ -1772,7 +1851,7 @@
                 <option value="7">1 week</option>
                 <option value="14">2 weeks</option>
                 <option value="30">1 month</option>
-                <option value="60" selected>2 months</option>
+                <option value="60">2 months</option>
                 <option value="90">3 months</option>
               </select>
             </div>
@@ -1789,7 +1868,7 @@
             <div style="display:flex; gap:8px;">
               <button id="rm-save" style="flex:1; background:#12244a; color:#fff; border:none;
                 padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
-                Save reminder
+                ${isEdit ? 'Save changes' : 'Save reminder'}
               </button>
               <button id="rm-cancel" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
                 padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
@@ -1799,6 +1878,18 @@
           </div>
         `;
         document.body.appendChild(overlay);
+
+        // Pre-fill fields when editing.
+        if (isEdit) {
+          overlay.querySelector('#rm-title').value = existingReminder.title || '';
+          overlay.querySelector('#rm-desc').value = existingReminder.description || '';
+          overlay.querySelector('#rm-date').value = existingReminder.eventDate || '';
+          overlay.querySelector('#rm-recurrence').value = existingReminder.recurrence || 'once';
+          overlay.querySelector('#rm-visibility').value = existingReminder.visibility || 'private';
+          overlay.querySelector('#rm-alert').value = String(existingReminder.alertDaysBefore || 60);
+        } else {
+          overlay.querySelector('#rm-alert').value = '60';
+        }
 
         overlay.querySelector('#rm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
 
@@ -1824,16 +1915,19 @@
           saveBtn.disabled = true;
           saveBtn.textContent = 'Saving…';
 
-          const res = await api('addReminder', {
+          const payload = {
             token: session.token, title, description, eventDate,
             recurrence, visibility, alertDaysBefore, notifyEmail
-          });
+          };
+          const res = isEdit
+            ? await api('updateReminder', Object.assign({ id: existingReminder.id }, payload))
+            : await api('addReminder', payload);
 
           if (!res.ok) {
             errEl.textContent = res.error || 'Could not save reminder.';
             errEl.style.display = 'block';
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save reminder';
+            saveBtn.textContent = isEdit ? 'Save changes' : 'Save reminder';
             return;
           }
 
