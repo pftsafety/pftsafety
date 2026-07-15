@@ -649,10 +649,21 @@
     .sb-stat { align-items: flex-start; }
   }
 
-  .app-search-wrap {
+  .launcher-layout {
     max-width: 1280px;
-    margin: 22px auto 0;
+    margin: 0 auto;
     padding: 0 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .launcher-main { flex: 1; min-width: 0; }
+
+  .app-search-wrap {
+    margin: 22px 0 0;
     width: 100%;
     box-sizing: border-box;
   }
@@ -687,9 +698,7 @@
   .app-search::placeholder { color: var(--text-muted); }
 
   .app-grid {
-    max-width: 1280px;
-    margin: 14px auto 60px;
-    padding: 0 32px;
+    margin: 14px 0 60px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 14px;
@@ -776,9 +785,7 @@
   }
 
   .admin-link {
-    max-width: 1280px;
-    margin: 0 auto 40px;
-    padding: 0 32px;
+    margin: 0 0 40px;
     width: 100%;
     box-sizing: border-box;
   }
@@ -790,6 +797,81 @@
     border-bottom: 1px dashed var(--border-hover);
   }
   .admin-link a:hover { color: var(--text-secondary); }
+
+  /* ---- Reminders sidebar ---- */
+  .reminders-panel {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-top: 22px;
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .reminders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .reminders-header h3 {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .add-reminder-btn {
+    background: var(--accent-dim);
+    border: 1px solid rgba(47,116,245,0.3);
+    color: var(--accent);
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .add-reminder-btn:hover { background: rgba(47,116,245,0.18); }
+  .add-reminder-btn svg { width: 15px; height: 15px; }
+
+  .reminder-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .reminder-item:last-child { border-bottom: none; }
+
+  .reminder-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .reminder-title { font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.35; }
+  .reminder-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .reminder-desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+
+  .reminder-badge {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+  }
+  .reminder-badge.soon { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .reminder-badge.public { background: var(--accent-dim); color: var(--accent); }
+  .reminder-badge.yearly { background: rgba(22,163,74,0.1); color: #15803d; }
+
+  .reminder-del {
+    background: none; border: none; color: var(--text-muted);
+    width: 20px; height: 20px; border-radius: 5px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .reminder-del:hover { background: var(--danger-dim); color: var(--danger); }
+  .reminder-del svg { width: 12px; height: 12px; }
+
+  .reminders-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 16px 0; }
 
   /* ---------- Mobile ---------- */
   @media (max-width: 640px) {
@@ -820,6 +902,8 @@
     .sb-stats-col { align-items: flex-start; text-align: left; }
     .sb-stat { align-items: flex-start; }
 
+    .launcher-layout { flex-direction: column; align-items: stretch; padding: 0; gap: 0; }
+
     .app-search-wrap { padding: 0 16px; margin-top: 16px; }
     .app-search-box { max-width: 100%; }
 
@@ -845,6 +929,14 @@
     .app-tile .name { font-size: 12.5px; line-height: 1.3; }
     .app-tile .desc { display: none; }
     .app-tile .arrow { display: none; }
+
+    .reminders-panel {
+      box-sizing: border-box;
+      position: static;
+      max-height: none;
+      margin: 0 16px 24px;
+      border-radius: var(--radius);
+    }
 
     .admin-link { padding: 0 16px; margin-bottom: 24px; }
   }
@@ -987,19 +1079,37 @@
   <div id="app-view">
     <div class="stat-strip" id="stat-strip"></div>
 
-    <div class="app-search-wrap">
-      <div class="app-search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-        </svg>
-        <input type="text" class="app-search" id="app-search" placeholder="Search apps…">
+    <div class="launcher-layout">
+      <div class="launcher-main">
+        <div class="app-search-wrap">
+          <div class="app-search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="text" class="app-search" id="app-search" placeholder="Search apps…">
+          </div>
+        </div>
+
+        <div class="app-grid" id="app-grid"></div>
+
+        <div class="admin-link" id="admin-link" style="display:none;">
+          <a href="admin.html">Admin panel →</a>
+        </div>
       </div>
-    </div>
 
-    <div class="app-grid" id="app-grid"></div>
-
-    <div class="admin-link" id="admin-link" style="display:none;">
-      <a href="admin.html">Admin panel →</a>
+      <aside class="reminders-panel">
+        <div class="reminders-header">
+          <h3>Reminders</h3>
+          <button class="add-reminder-btn" id="add-reminder-btn" title="Add reminder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+        </div>
+        <div id="reminders-list">
+          <p class="reminders-empty">Loading…</p>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -1178,6 +1288,8 @@
       document.getElementById('session-chip').style.display = 'flex';
       document.getElementById('session-username').textContent = user.username;
       document.getElementById('admin-link').style.display = user.role === 'admin' ? 'block' : 'none';
+
+      loadReminders();
 
       const grid = document.getElementById('app-grid');
       grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading apps…</p>';
@@ -1530,6 +1642,211 @@
         overlay.querySelector('#cm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
       });
     }
+
+    // ---------- Reminders ----------
+    let _remindersCache = [];
+
+    async function loadReminders() {
+      const session = getSession();
+      if (!session || !session.token) return;
+      const list = document.getElementById('reminders-list');
+      const res = await api('getReminders', { token: session.token });
+      if (!res.ok) {
+        list.innerHTML = `<p class="reminders-empty">${res.error || 'Could not load reminders.'}</p>`;
+        return;
+      }
+      _remindersCache = res.reminders || [];
+      renderReminders(_remindersCache);
+    }
+
+    function renderReminders(reminders) {
+      const list = document.getElementById('reminders-list');
+      if (!reminders.length) {
+        list.innerHTML = '<p class="reminders-empty">No reminders yet. Tap + to add one.</p>';
+        return;
+      }
+      list.innerHTML = reminders.map(r => {
+        const soon = r.daysUntil <= 14;
+        const dateLabel = new Date(r.nextOccurrence + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const daysLabel = r.daysUntil === 0 ? 'Today' : r.daysUntil === 1 ? 'Tomorrow' : r.daysUntil < 0 ? 'Past' : `In ${r.daysUntil}d`;
+        return `
+          <div class="reminder-item" data-id="${r.id}">
+            <div class="reminder-top-row">
+              <div style="min-width:0;">
+                <div class="reminder-title">${r.title}</div>
+                <div class="reminder-meta">
+                  <span>${dateLabel}</span>
+                  <span>·</span>
+                  <span>${daysLabel}</span>
+                  ${soon ? '<span class="reminder-badge soon">Soon</span>' : ''}
+                  ${r.visibility === 'public' ? '<span class="reminder-badge public">Public</span>' : ''}
+                  ${r.recurrence === 'yearly' ? '<span class="reminder-badge yearly">Yearly</span>' : ''}
+                </div>
+                ${r.description ? `<div class="reminder-desc">${r.description}</div>` : ''}
+                ${r.visibility === 'public' && !r.isOwner ? `<div class="reminder-meta" style="margin-top:4px;">by ${r.username}</div>` : ''}
+              </div>
+              ${r.isOwner ? `
+                <button class="reminder-del" data-id="${r.id}" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      list.querySelectorAll('.reminder-del').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const confirmed = await showConfirmModal({
+            title: 'Delete reminder?',
+            message: 'This cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            danger: true
+          });
+          if (!confirmed) return;
+          const session = getSession();
+          await api('deleteReminder', { token: session.token, id });
+          loadReminders();
+        });
+      });
+    }
+
+    function showAddReminderModal() {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position:fixed; inset:0; background:rgba(15,23,42,0.45);
+          display:flex; align-items:center; justify-content:center;
+          z-index:9999; padding:20px; overflow-y:auto;
+        `;
+        overlay.innerHTML = `
+          <div style="background:#fff; border-radius:14px; max-width:360px; width:100%;
+                      padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+            <h3 style="margin:0 0 16px; font-size:16px; color:#16213d;">Add reminder</h3>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Title</label>
+              <input type="text" id="rm-title" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Description (optional)</label>
+              <textarea id="rm-desc" rows="2" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit; resize:vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Date</label>
+              <input type="date" id="rm-date" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Repeats</label>
+                <select id="rm-recurrence" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                  border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                  <option value="once">Once</option>
+                  <option value="yearly">Every year</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Visible to</label>
+                <select id="rm-visibility" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                  border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                  <option value="private">Only me</option>
+                  <option value="public">Everyone</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Email me before the date</label>
+              <select id="rm-alert" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                <option value="7">1 week</option>
+                <option value="14">2 weeks</option>
+                <option value="30">1 month</option>
+                <option value="60" selected>2 months</option>
+                <option value="90">3 months</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Notify email</label>
+              <input type="email" id="rm-email" placeholder="you@example.com" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+            </div>
+
+            <div id="rm-error" style="display:none; font-size:12.5px; color:#b91c1c; background:#fdecea; border:1px solid #f5c6c2;
+              border-radius:8px; padding:9px 11px; margin-bottom:14px;"></div>
+
+            <div style="display:flex; gap:8px;">
+              <button id="rm-save" style="flex:1; background:#12244a; color:#fff; border:none;
+                padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                Save reminder
+              </button>
+              <button id="rm-cancel" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
+                padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('#rm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
+
+        overlay.querySelector('#rm-save').addEventListener('click', async () => {
+          const title = overlay.querySelector('#rm-title').value.trim();
+          const description = overlay.querySelector('#rm-desc').value.trim();
+          const eventDate = overlay.querySelector('#rm-date').value;
+          const recurrence = overlay.querySelector('#rm-recurrence').value;
+          const visibility = overlay.querySelector('#rm-visibility').value;
+          const alertDaysBefore = overlay.querySelector('#rm-alert').value;
+          const notifyEmail = overlay.querySelector('#rm-email').value.trim();
+          const errEl = overlay.querySelector('#rm-error');
+          errEl.style.display = 'none';
+
+          if (!title || !eventDate) {
+            errEl.textContent = 'Title and date are required.';
+            errEl.style.display = 'block';
+            return;
+          }
+
+          const session = getSession();
+          const saveBtn = overlay.querySelector('#rm-save');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving…';
+
+          const res = await api('addReminder', {
+            token: session.token, title, description, eventDate,
+            recurrence, visibility, alertDaysBefore, notifyEmail
+          });
+
+          if (!res.ok) {
+            errEl.textContent = res.error || 'Could not save reminder.';
+            errEl.style.display = 'block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save reminder';
+            return;
+          }
+
+          overlay.remove();
+          resolve(true);
+        });
+      });
+    }
+
+    document.getElementById('add-reminder-btn').addEventListener('click', async () => {
+      const saved = await showAddReminderModal();
+      if (saved) loadReminders();
+    });
 
     // Small on-brand confirm modal — resolves true/false based on choice.
     function offerBiometricSaveModal(username) {
