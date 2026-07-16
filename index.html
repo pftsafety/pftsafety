@@ -1520,6 +1520,34 @@
       });
     }
 
+    // ---------- Daily unlock gate ----------
+    // Session tokens are now long-lived (see REMEMBER_DAYS in Code.gs), so
+    // the token alone isn't enough to keep a shared/lost device secure day
+    // to day. This adds a separate, local check: even with a fully valid
+    // token, the person must re-verify with PIN or fingerprint once per
+    // "day" — where the day boundary resets at 6pm, not midnight, so an
+    // unlock in the evening still counts fresh the next morning.
+    const LAST_UNLOCK_KEY = 'pft_last_unlock';
+
+    function getDailyBoundary() {
+      const now = new Date();
+      const boundary = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0, 0, 0);
+      if (now < boundary) boundary.setDate(boundary.getDate() - 1);
+      return boundary;
+    }
+
+    function needsDailyUnlock() {
+      const raw = localStorage.getItem(LAST_UNLOCK_KEY);
+      if (!raw) return true;
+      const lastUnlock = new Date(Number(raw));
+      if (isNaN(lastUnlock.getTime())) return true;
+      return lastUnlock < getDailyBoundary();
+    }
+
+    function markUnlockedNow() {
+      localStorage.setItem(LAST_UNLOCK_KEY, String(Date.now()));
+    }
+
     async function init() {
       const session = getSession();
       if (!session || !session.token) { showLogin(); return; }
@@ -1528,6 +1556,14 @@
       if (session.expiresAt && new Date(session.expiresAt) < new Date()) {
         clearSession();
         showLogin('Your session expired. Please sign in again.');
+        return;
+      }
+
+      // Token is valid, but require a fresh PIN/fingerprint check if it's
+      // been a new "day" (6pm boundary) since the last unlock — applies
+      // whether arriving here directly or bounced back from a sub-app.
+      if (needsDailyUnlock()) {
+        showLogin();
         return;
       }
 
@@ -1581,6 +1617,7 @@
           return false;
         }
         setSession({ token: res.token, username: res.username, role: res.role, expiresAt: res.expiresAt });
+        markUnlockedNow();
 
         if (res.forcePinChange) {
           location.href = 'change-pin.html';
@@ -2037,6 +2074,7 @@
 
     document.getElementById('qu-different-account').addEventListener('click', () => {
       clearSavedLogin();
+      localStorage.removeItem(LAST_UNLOCK_KEY);
       document.getElementById('quick-unlock-view').style.display = 'none';
       document.getElementById('full-login-view').style.display = 'block';
       document.getElementById('login-username').value = '';
@@ -2055,6 +2093,7 @@
 
       const session = getSession();
       clearSession();
+      localStorage.removeItem(LAST_UNLOCK_KEY);
       showLogin();
       // Invalidate the server-side token in the background — the user is
       // already back at the login screen, no need to wait for this.

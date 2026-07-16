@@ -512,8 +512,27 @@
     }
 
     // ---------- Auth gate ----------
+    // Same 6pm-boundary rule as index.html/auth-guard.js — admin.html
+    // does its own session check rather than using auth-guard.js, so it
+    // needs this too, or someone could bookmark straight to /admin.html
+    // and skip the daily PIN/fingerprint check entirely.
+    function needsDailyUnlock() {
+      const raw = localStorage.getItem('pft_last_unlock');
+      if (!raw) return true;
+      const lastUnlock = new Date(Number(raw));
+      if (isNaN(lastUnlock.getTime())) return true;
+      const now = new Date();
+      const boundary = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0, 0, 0);
+      if (now < boundary) boundary.setDate(boundary.getDate() - 1);
+      return lastUnlock < boundary;
+    }
+
     async function requireAdmin() {
       if (!TOKEN) { location.href = 'index.html'; return false; }
+      if (needsDailyUnlock()) {
+        location.href = 'index.html?redirect=' + encodeURIComponent(location.href);
+        return false;
+      }
       const check = await api('validateSession', { token: TOKEN });
       if (!check.ok || check.role !== 'admin') {
         location.href = 'index.html';
@@ -900,6 +919,7 @@
 
       const token = TOKEN;
       localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('pft_last_unlock');
       location.href = 'index.html';
       // Background server-side token invalidation — fire and forget.
       if (token) {
