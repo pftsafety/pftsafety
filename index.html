@@ -246,6 +246,28 @@
     min-height: calc(100vh - 73px);
   }
 
+  /* ---- Desktop-only: bound the split panel into a centered card ----
+     Full-bleed edge-to-edge looks stretched/empty on a wide monitor —
+     this scopes the change to real desktop viewports and leaves the
+     mobile full-bleed stacked layout (below) untouched. */
+  @media (min-width: 641px) {
+    #login-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .split-login {
+      max-width: 980px;
+      min-height: 600px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 90px -30px rgba(15,35,90,0.4),
+        0 15px 40px -15px rgba(0,0,0,0.12);
+    }
+  }
+
   .brand-panel {
     position: relative;
     flex: 1 1 44%;
@@ -254,6 +276,17 @@
     display: flex;
     align-items: center;
     padding: 48px;
+  }
+
+  .brand-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    z-index: 0;
   }
 
   .blob {
@@ -292,12 +325,56 @@
     margin: 0 0 14px;
   }
 
-  .brand-copy p {
-    color: rgba(255,255,255,0.8);
+  .brand-desc {
+    color: rgba(255,255,255,0.82);
     font-size: 14px;
-    line-height: 1.6;
-    margin: 0;
+    line-height: 1.65;
+    margin: 16px 0 0;
+    max-width: 340px;
+    position: relative;
+    z-index: 1;
   }
+
+  /* ---- Entrance animations ---- */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .brand-icon, .eyebrow, .brand-copy h1, .brand-desc {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .brand-icon    { animation-delay: 0.05s; }
+  .eyebrow       { animation-delay: 0.15s; }
+  .brand-copy h1 { animation-delay: 0.22s; }
+  .brand-desc    { animation-delay: 0.3s; }
+
+  #full-login-view > h1,
+  #full-login-view > .sub,
+  #full-login-view form .field,
+  #full-login-view form .remember-row,
+  #full-login-view form .btn-primary,
+  #full-login-view > .signup-row {
+    opacity: 0;
+    animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  #full-login-view > h1             { animation-delay: 0.12s; }
+  #full-login-view > .sub           { animation-delay: 0.18s; }
+  #full-login-view form .field:nth-of-type(1) { animation-delay: 0.26s; }
+  #full-login-view form .field:nth-of-type(2) { animation-delay: 0.32s; }
+  #full-login-view form .remember-row { animation-delay: 0.38s; }
+  #full-login-view form .btn-primary  { animation-delay: 0.44s; }
+  #full-login-view > .signup-row      { animation-delay: 0.5s; }
+
+  /* Gentle continuous float on the decorative circles */
+  @keyframes blobFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-14px) scale(1.03); }
+  }
+  .blob-a { animation: blobFloat 8s ease-in-out infinite; }
+  .blob-b { animation: blobFloat 9s ease-in-out infinite 1.2s; }
+  .blob-c { animation: blobFloat 7s ease-in-out infinite 0.6s; }
 
   .form-panel {
     flex: 1 1 56%;
@@ -410,11 +487,16 @@
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
     min-height: 48px;
     box-shadow: 0 8px 20px rgba(18,36,74,0.25);
   }
-  .btn-primary:hover { background: var(--login-navy-hover); }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--login-navy-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(18,36,74,0.32);
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
   .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .form-msg {
@@ -885,7 +967,7 @@
 
     .split-login { flex-direction: column; min-height: auto; }
     .brand-panel { flex: none; padding: 28px 24px; min-height: 180px; align-items: flex-end; }
-    .brand-copy p { display: none; }
+    .brand-desc { display: none; }
     .brand-copy h1 { font-size: 22px; margin-bottom: 4px; }
     .brand-icon { width: 42px; height: 42px; margin-bottom: 14px; }
     .blob-a { width: 220px; height: 220px; top: -90px; left: -70px; }
@@ -1005,7 +1087,7 @@
           </div>
           <div class="eyebrow">WELCOME</div>
           <h1>PFT Safety</h1>
-          <p>Unified access to PPE issue, permit-to-work scanning, incident reporting, and every safety system in one place.</p>
+          <p class="brand-desc">Your unified digital platform for the Safety &amp; Environment Department — real-time PPE and equipment tracking, permit-to-work scanning, and centralized incident &amp; near-miss reporting, all in one place.</p>
         </div>
       </div>
 
@@ -1214,8 +1296,19 @@
     function setSavedLogin(data) { localStorage.setItem(SAVED_LOGIN_KEY, JSON.stringify(data)); }
     function clearSavedLogin() { localStorage.removeItem(SAVED_LOGIN_KEY); }
 
+    // Fingerprint/Face ID only makes sense on an actual phone or tablet —
+    // on a desktop web browser it's either unavailable or maps to something
+    // like Windows Hello/Touch ID, which doesn't fit this factory-device
+    // use case. Gating on user-agent (not viewport width) so a narrow
+    // desktop window doesn't accidentally trigger it, and a wide phone in
+    // landscape doesn't accidentally lose it.
+    function isMobileDevice() {
+      return /android|iphone|ipad|ipod|windows phone/i.test(navigator.userAgent);
+    }
+
     function webAuthnSupported() {
-      return !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+      return isMobileDevice() &&
+        !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
     }
 
     function bufToB64(buf) {
