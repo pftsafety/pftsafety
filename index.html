@@ -1978,6 +1978,7 @@
               <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Email me before the date</label>
               <select id="rm-alert" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
                 border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                <option value="0">On the exact date</option>
                 <option value="7">1 week</option>
                 <option value="14">2 weeks</option>
                 <option value="30">1 month</option>
@@ -2019,6 +2020,7 @@
           overlay.querySelector('#rm-alert').value = String(existingReminder.alertDaysBefore || 60);
         } else {
           overlay.querySelector('#rm-alert').value = '60';
+          overlay.querySelector('#rm-visibility').value = 'public';
         }
 
         overlay.querySelector('#rm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
