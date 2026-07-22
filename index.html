@@ -1391,7 +1391,7 @@
       // Use sessionStorage cache so navigating back from a sub-app doesn't
       // fire another Apps Script round-trip just to re-render the same tiles.
       const APPS_CACHE_KEY = 'pft_apps_cache';
-      const cached = (() => { try { return JSON.parse(sessionStorage.getItem(APPS_CACHE_KEY)); } catch (e) { return null; } })();
+      const cached = (() => { try { return JSON.parse(localStorage.getItem(APPS_CACHE_KEY)); } catch (e) { return null; } })();
 
       // Render from cache immediately if available, then refresh in background
       // once the combined getLauncherData call below resolves.
@@ -1552,7 +1552,7 @@
         }
 
         if (res.apps) {
-          try { sessionStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
+          try { localStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
           renderGrid(res.apps);
           preloadApps(res.apps.map(a => a.url));
         }
