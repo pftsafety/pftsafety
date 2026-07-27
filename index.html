@@ -866,6 +866,42 @@
     font-size: 13px;
   }
 
+  /* ---- Skeleton loading placeholder — same shape as a real app-tile,
+     shown instead of plain "Loading…" text so a delay feels intentional
+     rather than broken. ---- */
+  @keyframes skeletonPulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+  .skeleton-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    animation: skeletonPulse 1.3s ease-in-out infinite;
+  }
+  .skeleton-tile .sk-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--border);
+    margin-bottom: 14px;
+  }
+  .skeleton-tile .sk-line {
+    height: 10px; border-radius: 4px;
+    background: var(--border);
+    margin-bottom: 8px;
+  }
+  .skeleton-tile .sk-line.sk-title { width: 65%; height: 12px; }
+  .skeleton-tile .sk-line.sk-desc  { width: 90%; }
+  .skeleton-tile .sk-line.sk-desc2 { width: 55%; margin-bottom: 0; }
+  .skeleton-tile:nth-child(2) { animation-delay: 0.1s; }
+  .skeleton-tile:nth-child(3) { animation-delay: 0.2s; }
+  .skeleton-tile:nth-child(4) { animation-delay: 0.3s; }
+  .skeleton-tile:nth-child(5) { animation-delay: 0.4s; }
+  .skeleton-tile:nth-child(6) { animation-delay: 0.5s; }
+  .skeleton-tile:nth-child(7) { animation-delay: 0.6s; }
+  .skeleton-tile:nth-child(8) { animation-delay: 0.7s; }
+
   .admin-link {
     margin: 0 0 40px;
     width: 100%;
@@ -921,6 +957,12 @@
   .add-reminder-btn:hover { background: rgba(47,116,245,0.18); }
   .add-reminder-btn svg { width: 15px; height: 15px; }
 
+  #notif-toggle-btn.enabled {
+    background: var(--success-dim);
+    border-color: rgba(22,163,74,0.3);
+    color: var(--success);
+  }
+
   .reminder-item {
     padding: 10px 0;
     border-bottom: 1px solid var(--border);
@@ -954,6 +996,19 @@
   .reminder-del svg { width: 12px; height: 12px; }
 
   .reminders-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 16px 0; }
+
+  .skeleton-reminder {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .skeleton-reminder .sk-line {
+    height: 9px; border-radius: 4px; background: var(--border);
+    animation: skeletonPulse 1.3s ease-in-out infinite;
+  }
+  .skeleton-reminder .sk-line.sk-r-title { width: 70%; height: 11px; margin-bottom: 7px; }
+  .skeleton-reminder .sk-line.sk-r-meta  { width: 45%; }
+  .skeleton-reminder:nth-child(2) .sk-line { animation-delay: 0.15s; }
+  .skeleton-reminder:nth-child(3) .sk-line { animation-delay: 0.3s; }
 
   /* ---------- Mobile ---------- */
   @media (max-width: 640px) {
@@ -1023,6 +1078,8 @@
     .admin-link { padding: 0 16px; margin-bottom: 24px; }
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
 
@@ -1183,6 +1240,12 @@
         <div class="reminders-header">
           <h3>Reminders</h3>
           <div style="display:flex; align-items:center; gap:6px;">
+            <button class="add-reminder-btn" id="notif-toggle-btn" title="Enable notifications" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+            </button>
             <a id="manage-reminders-link" style="font-size:11.5px; color:var(--accent); cursor:pointer; text-decoration:none; font-weight:600;">Manage</a>
             <button class="add-reminder-btn" id="add-reminder-btn" title="Add reminder">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1192,7 +1255,9 @@
           </div>
         </div>
         <div id="reminders-list">
-          <p class="reminders-empty">Loading…</p>
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
         </div>
       </aside>
     </div>
@@ -1386,7 +1451,14 @@
       document.getElementById('admin-link').style.display = user.role === 'admin' ? 'block' : 'none';
 
       const grid = document.getElementById('app-grid');
-      grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading apps…</p>';
+      grid.innerHTML = Array.from({ length: 8 }).map(() => `
+        <div class="skeleton-tile">
+          <div class="sk-icon"></div>
+          <div class="sk-line sk-title"></div>
+          <div class="sk-line sk-desc"></div>
+          <div class="sk-line sk-desc2"></div>
+        </div>
+      `).join('');
 
       // Use sessionStorage cache so navigating back from a sub-app doesn't
       // fire another Apps Script round-trip just to re-render the same tiles.
@@ -1543,7 +1615,8 @@
       // queue behind each other rather than run in parallel, which is what
       // made the launcher feel slow to fully appear after login.
       const session = getSession();
-      document.getElementById('reminders-list').innerHTML = '<p class="reminders-empty">Loading…</p>';
+      document.getElementById('reminders-list').innerHTML =
+        '<div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>'.repeat(3);
 
       api('getLauncherData', { token: session ? session.token : '' }).then(res => {
         if (!res.ok) {
@@ -1928,6 +2001,93 @@
 
     document.getElementById('manage-reminders-link').addEventListener('click', showManageRemindersModal);
 
+    // ---------- Push notifications (Firebase Cloud Messaging) ----------
+    const FIREBASE_CONFIG = {
+      apiKey: 'AIzaSyAmWZAYQWL-6Yqhua59aJUkjs_vXBPttRI',
+      authDomain: 'pftportal-59903.firebaseapp.com',
+      projectId: 'pftportal-59903',
+      storageBucket: 'pftportal-59903.firebasestorage.app',
+      messagingSenderId: '305683563237',
+      appId: '1:305683563237:web:c6b474bacabfdd7c260a0c'
+    };
+    const FCM_VAPID_KEY = 'BO6EUbruNywPTo-Xr1HXTsfs8LL46QCKfBE8qi75QYdHNWHx5nQL4VALLXGO15tkbMtIanzLHS2T1IUYw7FOT7E';
+    const PUSH_ENABLED_KEY = 'pft_push_enabled';
+
+    function pushSupported() {
+      return 'Notification' in window && 'serviceWorker' in navigator && window.isSecureContext;
+    }
+
+    function updateNotifButton() {
+      const btn = document.getElementById('notif-toggle-btn');
+      if (!btn) return;
+      if (!pushSupported()) { btn.style.display = 'none'; return; }
+      btn.style.display = 'flex';
+      const enabled = Notification.permission === 'granted' && localStorage.getItem(PUSH_ENABLED_KEY) === '1';
+      btn.classList.toggle('enabled', enabled);
+      btn.title = enabled ? 'Notifications enabled' : 'Enable notifications';
+    }
+
+    async function enablePushNotifications() {
+      if (!pushSupported()) return;
+
+      if (Notification.permission === 'denied') {
+        alert('Notifications are blocked for this site. Enable them in your browser/site settings, then try again.');
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const messaging = firebase.messaging();
+        const fcmToken = await messaging.getToken({
+          vapidKey: FCM_VAPID_KEY,
+          serviceWorkerRegistration: reg
+        });
+        if (!fcmToken) return;
+
+        const session = getSession();
+        if (!session || !session.token) return;
+
+        await api('saveNotificationToken', { token: session.token, fcmToken });
+        localStorage.setItem(PUSH_ENABLED_KEY, '1');
+        updateNotifButton();
+      } catch (err) {
+        console.error('Push registration failed:', err);
+        alert('Could not enable notifications on this device.');
+      }
+    }
+
+    function initFirebaseMessaging() {
+      if (!pushSupported()) return;
+      try {
+        if (!firebase.apps || !firebase.apps.length) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        // Foreground messages (app open and focused) — background messages
+        // are handled in sw.js's onBackgroundMessage instead.
+        const messaging = firebase.messaging();
+        messaging.onMessage(payload => {
+          const title = (payload.notification && payload.notification.title) || 'PFT Safety Portal';
+          const body = (payload.notification && payload.notification.body) || '';
+          if (Notification.permission === 'granted') {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification(title, { body: body, icon: 'icon-192.png' });
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Firebase messaging init failed:', e);
+      }
+      updateNotifButton();
+    }
+
+    const notifBtn = document.getElementById('notif-toggle-btn');
+    if (notifBtn) notifBtn.addEventListener('click', enablePushNotifications);
+
+    initFirebaseMessaging();
+
     function showAddReminderModal(existingReminder) {
       const isEdit = !!existingReminder;
       return new Promise(resolve => {
@@ -2291,6 +2451,27 @@
         }
       });
     }
+
+    // Fires the moment the page loads — regardless of whether the user is
+    // about to see the login form or already has a valid session. getApps
+    // and getSettings don't need a token, so there's no reason to wait for
+    // login to finish before starting this: by the time someone actually
+    // reaches the launcher (after typing a PIN, or a fingerprint tap), this
+    // has had a head start running in parallel with that, and the app grid
+    // + banner caches are often already warm even on a device that's never
+    // loaded this page before.
+    function preloadLauncherDataEarly() {
+      api('getLauncherData', {}).then(res => {
+        if (!res.ok) return;
+        if (res.apps) {
+          try { localStorage.setItem('pft_apps_cache', JSON.stringify(res.apps)); } catch (e) {}
+        }
+        if (res.settings) {
+          try { localStorage.setItem('pft_settings_cache', JSON.stringify(res.settings)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+    preloadLauncherDataEarly();
 
     init();
   </script>
