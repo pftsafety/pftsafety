@@ -1296,8 +1296,10 @@
         grid.innerHTML = `<p class="app-empty-state">${emptyMessage || 'No apps configured yet.'}</p>`;
         return;
       }
+      const newTab = !isMobileDevice();
+      const targetAttr = newTab ? 'target="_blank" rel="noopener noreferrer"' : '';
       grid.innerHTML = apps.map(app => `
-        <a class="app-tile" href="${app.url}">
+        <a class="app-tile" href="${app.url}" ${targetAttr}>
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
           <div class="name">${app.name}</div>
           <div class="desc">${app.description || ''}</div>
