@@ -1,0 +1,2965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PFT Safety Portal</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PFT Safety">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f3f5f9;
+    --surface: #ffffff;
+    --surface-raised: #f8f9fc;
+    --border: #e2e5ea;
+    --border-hover: #c7cdd6;
+    --text-primary: #16213d;
+    --text-secondary: #5b6472;
+    --text-muted: #8892a0;
+    --accent: #2f74f5;
+    --accent-hover: #1d5fdb;
+    --accent-dim: rgba(47, 116, 245, 0.10);
+    --navy: #12244a;
+    --navy-hover: #0d1c3a;
+    --danger: #dc2626;
+    --danger-dim: rgba(220, 38, 38, 0.08);
+    --success: #16a34a;
+    --success-dim: rgba(22, 163, 74, 0.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    width: 100%;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: left top;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  a { color: inherit; }
+  button { font-family: inherit; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    flex-wrap: wrap;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .brand-text strong {
+    font-size: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  .brand-text span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .session-chip {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .session-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    min-height: 38px;
+  }
+  /* ---- Install banner (custom, matches reference design) ---- */
+  .install-banner-wrap {
+    max-width: 1280px;
+    margin: 16px auto 0;
+    padding: 0 32px;
+    display: none;
+  }
+  .install-banner-wrap.show { display: block; }
+
+  .install-banner {
+    background: #eef2ff;
+    border: 1px solid #dbe2fd;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: ibSlideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes ibSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .install-banner .ib-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #4f5fe8;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .install-banner .ib-icon svg { width: 20px; height: 20px; }
+
+  .install-banner .ib-text { flex: 1; min-width: 0; }
+  .install-banner .ib-title {
+    font-size: 14px; font-weight: 700; color: #1e2358; margin-bottom: 2px;
+  }
+  .install-banner .ib-sub {
+    font-size: 12.5px; color: #5b62a8;
+  }
+
+  .install-banner .ib-actions {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+
+  .ib-install-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: #4f5fe8;
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .ib-install-btn:hover { background: #3f4dd0; }
+  .ib-install-btn svg { width: 14px; height: 14px; }
+
+  .ib-dismiss {
+    background: none; border: none; color: #8890c9;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .ib-dismiss:hover { background: rgba(79,95,232,0.1); }
+  .ib-dismiss svg { width: 15px; height: 15px; }
+
+  @media (max-width: 640px) {
+    .install-banner-wrap { padding: 0 16px; margin-top: 12px; }
+    .install-banner { padding: 12px; gap: 10px; }
+    .install-banner .ib-sub { display: none; }
+    .ib-install-btn span { display: none; }
+    .ib-install-btn { padding: 9px 12px; }
+  }
+
+
+  /* ---------- Login view ---------- */
+  /* ---------- Login view (split panel, matches provided reference) ---------- */
+  :root {
+    --login-grad-start: #2f74f5;
+    --login-grad-end: #0a2f7a;
+    --login-navy: #12244a;
+    --login-navy-hover: #0d1c3a;
+    --login-field-bg: #f0f2f5;
+    --login-border: #e2e5ea;
+    --login-text-dark: #16213d;
+    --login-text-gray: #8892a0;
+    --login-link: #2f74f5;
+  }
+
+  #login-view { min-height: calc(100vh - 73px); }
+
+  .split-login {
+    display: flex;
+    width: 100%;
+    min-height: calc(100vh - 73px);
+  }
+
+  /* ---- Desktop-only: bound the split panel into a centered card ----
+     Full-bleed edge-to-edge looks stretched/empty on a wide monitor —
+     this scopes the change to real desktop viewports and leaves the
+     mobile full-bleed stacked layout (below) untouched. */
+  @media (min-width: 641px) {
+    #login-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .split-login {
+      max-width: 980px;
+      min-height: 600px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 90px -30px rgba(15,35,90,0.4),
+        0 15px 40px -15px rgba(0,0,0,0.12);
+    }
+  }
+
+  .brand-panel {
+    position: relative;
+    flex: 1 1 44%;
+    background: linear-gradient(135deg, var(--login-grad-start), var(--login-grad-end));
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 48px;
+  }
+
+  .brand-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    z-index: 0;
+  }
+
+  .brand-dots-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%), rgba(255,255,255,0.08);
+  }
+  .blob-a { width: 340px; height: 340px; top: -120px; left: -100px; }
+  .blob-b { width: 260px; height: 260px; bottom: 60px; left: 30%; }
+  .blob-c { width: 200px; height: 200px; bottom: -80px; right: -60px; }
+
+  .brand-copy { position: relative; z-index: 1; max-width: 380px; }
+
+  .brand-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; margin-bottom: 22px;
+  }
+  .brand-icon svg { width: 26px; height: 26px; }
+
+  .brand-copy .eyebrow {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+
+  .brand-copy h1 {
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin: 0 0 14px;
+  }
+
+  .brand-desc {
+    color: rgba(255,255,255,0.82);
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 16px 0 0;
+    max-width: 340px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- Entrance animations ---- */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .brand-icon, .eyebrow, .brand-copy h1, .brand-desc {
+    opacity: 0;
+    animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .brand-icon    { animation-delay: 0.05s; }
+  .eyebrow       { animation-delay: 0.15s; }
+  .brand-copy h1 { animation-delay: 0.22s; }
+  .brand-desc    { animation-delay: 0.3s; }
+
+  #full-login-view > h1,
+  #full-login-view > .sub,
+  #full-login-view form .field,
+  #full-login-view form .remember-row,
+  #full-login-view form .btn-primary,
+  #full-login-view > .signup-row {
+    opacity: 0;
+    animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  #full-login-view > h1             { animation-delay: 0.12s; }
+  #full-login-view > .sub           { animation-delay: 0.18s; }
+  #full-login-view form .field:nth-of-type(1) { animation-delay: 0.26s; }
+  #full-login-view form .field:nth-of-type(2) { animation-delay: 0.32s; }
+  #full-login-view form .remember-row { animation-delay: 0.38s; }
+  #full-login-view form .btn-primary  { animation-delay: 0.44s; }
+  #full-login-view > .signup-row      { animation-delay: 0.5s; }
+
+  /* Gentle continuous float on the decorative circles */
+  @keyframes blobFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-14px) scale(1.03); }
+  }
+  .blob-a { animation: blobFloat 8s ease-in-out infinite; }
+  .blob-b { animation: blobFloat 9s ease-in-out infinite 1.2s; }
+  .blob-c { animation: blobFloat 7s ease-in-out infinite 0.6s; }
+
+  .form-panel {
+    flex: 1 1 56%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .login-card { width: 100%; max-width: 380px; }
+
+  .login-card h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--login-text-dark);
+    margin: 0 0 6px;
+  }
+
+  .login-card .sub {
+    font-size: 13.5px;
+    color: var(--login-text-gray);
+    margin: 0 0 26px;
+  }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--login-text-gray);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--login-field-bg);
+    border: 1px solid var(--login-field-bg);
+    border-radius: 10px;
+    transition: border-color 0.15s;
+  }
+  .input-icon-wrap:focus-within { border-color: var(--login-link); background: #fff; }
+
+  .input-icon-wrap .field-icon {
+    width: 18px; height: 18px;
+    color: var(--login-text-gray);
+    margin-left: 14px;
+    flex-shrink: 0;
+  }
+
+  .input-icon-wrap input {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--login-text-dark);
+    padding: 13px 12px;
+    font-size: 16px; /* avoids iOS auto-zoom */
+    font-family: inherit;
+  }
+  .input-icon-wrap input:focus { outline: none; }
+  .input-icon-wrap input::placeholder { color: var(--login-text-gray); }
+
+  .pin-toggle {
+    background: none;
+    border: none;
+    color: var(--login-link);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 14px 0 22px;
+    font-size: 12.5px;
+  }
+
+  .remember-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--login-text-gray);
+    cursor: pointer;
+  }
+
+  .remember-row a {
+    color: var(--login-link);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .remember-row a:hover { text-decoration: underline; }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--login-navy);
+    border: none;
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    min-height: 48px;
+    box-shadow: 0 8px 20px rgba(18,36,74,0.25);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--login-navy-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(18,36,74,0.32);
+  }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .form-msg {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .form-msg.error { display: block; background: #fdecea; color: #b3261e; border: 1px solid #f5c6c2; }
+  .form-msg.info { display: block; background: #eaf1fe; color: #1d4ed8; border: 1px solid #c7dafc; }
+
+  .signup-row {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 13px;
+    color: var(--login-text-gray);
+  }
+  .signup-row a { color: var(--login-link); text-decoration: none; cursor: pointer; font-weight: 700; }
+  .signup-row a:hover { text-decoration: underline; }
+
+  /* ---------- Launcher view ---------- */
+  #app-view { display: none; }
+
+  /* ---- Safety banner — redesign ---- */
+  .stat-strip {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  .safety-banner {
+    background: #0c1a3a;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* large decorative ring behind the number */
+  .safety-banner::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 17%;
+    transform: translate(-50%, -50%);
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    border: 36px solid rgba(59,130,246,0.06);
+    pointer-events: none;
+  }
+  .safety-banner::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 17%;
+    transform: translate(-50%, -50%);
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    border: 20px solid rgba(59,130,246,0.09);
+    pointer-events: none;
+  }
+
+  /* amber accent bar along the top */
+  .sb-accent {
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, transparent 100%);
+  }
+
+  .sb-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    padding: 24px 48px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* left — manhours */
+  .sb-manhours {
+    min-width: 0;
+    padding-right: 0;
+  }
+
+  .sb-eyebrow {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: #f59e0b;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sb-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: #f59e0b;
+    flex-shrink: 0;
+  }
+
+  .sb-count-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+  }
+
+  /* digit slots container */
+  .sb-number {
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(38px, 5.5vw, 64px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 4px;
+    line-height: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    text-shadow: 0 0 40px rgba(99,179,237,0.25);
+  }
+
+  .sb-digit {
+    display: inline-flex;
+    flex-direction: column;
+    height: 1em;
+    overflow: hidden;
+  }
+
+  .sb-digit-inner {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sb-digit-inner span {
+    height: 1em;
+    line-height: 1em;
+    text-align: center;
+    display: block;
+    min-width: 0.6em;
+  }
+
+  .sb-comma {
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(38px, 5.5vw, 64px);
+    color: rgba(255,255,255,0.25);
+    line-height: 1;
+    letter-spacing: 0;
+    align-self: flex-end;
+    margin: 0 1px;
+  }
+
+  .sb-unit {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    padding-bottom: 6px;
+  }
+
+  /* centre divider */
+  .sb-divider {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(255,255,255,0.08);
+    margin: 0 40px;
+    flex-shrink: 0;
+  }
+
+  /* right stat panels */
+  .sb-stats-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sb-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sb-stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.35);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+  }
+  .sb-stat-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sb-stat-label.days-label::before { background: #34d399; }
+  .sb-stat-label.date-label::before { background: #f59e0b; }
+
+  .sb-stat-value {
+    font-family: 'Oswald', 'Impact', monospace;
+    font-size: clamp(26px, 3.2vw, 42px);
+    font-weight: 700;
+    color: #34d399;
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  .sb-stat-value.date-val {
+    font-family: var(--font-sans);
+    font-size: clamp(14px, 1.5vw, 18px);
+    color: #fcd34d;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 640px) {
+    .sb-inner { grid-template-columns: 1fr; padding: 20px 16px; gap: 20px; }
+    .sb-divider { width: 100%; height: 1px; margin: 0; }
+    .sb-manhours { padding-right: 0; }
+    .sb-number { font-size: 32px; }
+    .sb-stats-col { align-items: flex-start; text-align: left; }
+    .sb-stat { align-items: flex-start; }
+  }
+
+  .launcher-layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .launcher-main { flex: 1; min-width: 0; }
+
+  .app-search-wrap {
+    margin: 22px 0 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .app-search-box {
+    position: relative;
+    max-width: 300px;
+  }
+
+  .app-search-box svg {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 15px; height: 15px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .app-search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px 9px 36px;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    font-family: inherit;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+  }
+  .app-search:focus { outline: none; border-color: var(--accent); }
+  .app-search::placeholder { color: var(--text-muted); }
+
+  .app-grid {
+    margin: 14px 0 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .app-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-top-width: 3px;
+    border-top-color: var(--accent);
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    text-decoration: none;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  }
+
+  .app-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px -10px rgba(47,116,245,0.35);
+    border-color: var(--accent);
+    border-top-color: var(--accent);
+  }
+
+  .app-tile .icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(47,116,245,0.3);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+  }
+  .app-tile:hover .icon {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .app-tile .icon svg { width: 22px; height: 22px; }
+
+  .app-tile .name {
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .app-tile .desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .app-tile .arrow {
+    position: absolute;
+    top: 22px; right: 18px;
+    width: 15px; height: 15px;
+    color: var(--accent);
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: opacity 0.18s, transform 0.18s;
+  }
+  .app-tile:hover .arrow { opacity: 1; transform: translate(0,0); }
+
+  .app-empty-state {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* ---- Skeleton loading placeholder — same shape as a real app-tile,
+     shown instead of plain "Loading…" text so a delay feels intentional
+     rather than broken. ---- */
+  @keyframes skeletonPulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+  .skeleton-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    animation: skeletonPulse 1.3s ease-in-out infinite;
+  }
+  .skeleton-tile .sk-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: var(--border);
+    margin-bottom: 14px;
+  }
+  .skeleton-tile .sk-line {
+    height: 10px; border-radius: 4px;
+    background: var(--border);
+    margin-bottom: 8px;
+  }
+  .skeleton-tile .sk-line.sk-title { width: 65%; height: 12px; }
+  .skeleton-tile .sk-line.sk-desc  { width: 90%; }
+  .skeleton-tile .sk-line.sk-desc2 { width: 55%; margin-bottom: 0; }
+  .skeleton-tile:nth-child(2) { animation-delay: 0.1s; }
+  .skeleton-tile:nth-child(3) { animation-delay: 0.2s; }
+  .skeleton-tile:nth-child(4) { animation-delay: 0.3s; }
+  .skeleton-tile:nth-child(5) { animation-delay: 0.4s; }
+  .skeleton-tile:nth-child(6) { animation-delay: 0.5s; }
+  .skeleton-tile:nth-child(7) { animation-delay: 0.6s; }
+  .skeleton-tile:nth-child(8) { animation-delay: 0.7s; }
+
+  .admin-link {
+    margin: 0 0 40px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-link a {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border-hover);
+  }
+  .admin-link a:hover { color: var(--text-secondary); }
+
+  /* ---- Reminders sidebar ---- */
+  .reminders-panel {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-top: 22px;
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
+
+  .reminders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .reminders-header h3 {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .add-reminder-btn {
+    background: var(--accent-dim);
+    border: 1px solid rgba(47,116,245,0.3);
+    color: var(--accent);
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .add-reminder-btn:hover { background: rgba(47,116,245,0.18); }
+  .add-reminder-btn svg { width: 15px; height: 15px; }
+
+  #notif-toggle-btn.enabled {
+    background: var(--success-dim);
+    border-color: rgba(22,163,74,0.3);
+    color: var(--success);
+  }
+
+  .reminder-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .reminder-item:last-child { border-bottom: none; }
+
+  .reminder-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .reminder-title { font-size: 13px; font-weight: 700; color: var(--text-primary); line-height: 1.35; }
+  .reminder-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .reminder-desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+
+  .reminder-badge {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+  }
+  .reminder-badge.soon { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .reminder-badge.public { background: var(--accent-dim); color: var(--accent); }
+  .reminder-badge.yearly { background: rgba(22,163,74,0.1); color: #15803d; }
+
+  .reminder-del {
+    background: none; border: none; color: var(--text-muted);
+    width: 20px; height: 20px; border-radius: 5px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .reminder-del:hover { background: var(--danger-dim); color: var(--danger); }
+  .reminder-del svg { width: 12px; height: 12px; }
+
+  .reminders-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px 8px;
+  }
+  .reminders-empty svg { opacity: 0.35; margin-bottom: 8px; }
+  .reminders-empty p { margin: 4px 0 0; }
+
+  .reminders-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 10px 0 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2px;
+  }
+
+  .skeleton-reminder {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .skeleton-reminder .sk-line {
+    height: 9px; border-radius: 4px; background: var(--border);
+    animation: skeletonPulse 1.3s ease-in-out infinite;
+  }
+  .skeleton-reminder .sk-line.sk-r-title { width: 70%; height: 11px; margin-bottom: 7px; }
+  .skeleton-reminder .sk-line.sk-r-meta  { width: 45%; }
+  .skeleton-reminder:nth-child(2) .sk-line { animation-delay: 0.15s; }
+  .skeleton-reminder:nth-child(3) .sk-line { animation-delay: 0.3s; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 640px) {
+    .topbar { padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top)); }
+    .brand-text span { display: none; }
+    .brand-text strong { font-size: 13px; }
+    #session-username { display: none; }
+
+    .login-card { padding: 26px 20px; max-width: 100%; }
+    #login-view { padding: 16px; min-height: calc(100vh - 61px); }
+
+    .split-login { flex-direction: column; min-height: auto; }
+    .brand-panel { flex: none; padding: 28px 24px; min-height: 180px; align-items: flex-end; }
+    .brand-desc { display: none; }
+    .brand-copy h1 { font-size: 22px; margin-bottom: 4px; }
+    .brand-icon { width: 42px; height: 42px; margin-bottom: 14px; }
+    .blob-a { width: 220px; height: 220px; top: -90px; left: -70px; }
+    .blob-b { width: 160px; height: 160px; bottom: -60px; left: 50%; }
+    .blob-c { width: 140px; height: 140px; bottom: -60px; right: -50px; }
+    .form-panel { padding: 28px 20px 40px; }
+
+    .stat-strip { margin-top: 0; }
+    .sb-inner { grid-template-columns: 1fr; padding: 20px 16px; gap: 16px; }
+    .sb-divider { width: 100%; height: 1px; margin: 0; }
+    .sb-manhours { padding-right: 0; }
+    .sb-number { font-size: 32px; }
+    .sb-stat-value { font-size: 22px; }
+    .sb-stats-col { align-items: flex-start; text-align: left; }
+    .sb-stat { align-items: flex-start; }
+
+    .launcher-layout { flex-direction: column; align-items: stretch; padding: 0; gap: 0; }
+
+    .app-search-wrap { padding: 0 16px; margin-top: 16px; }
+    .app-search-box { max-width: 100%; }
+
+    .app-grid {
+      padding: 0 16px 24px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0 24px;
+    }
+    .app-tile {
+      padding: 16px 10px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      border-top-width: 1px;
+    }
+    .app-tile .icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto;
+    }
+    .app-tile .name { font-size: 12.5px; line-height: 1.3; }
+    .app-tile .desc { display: none; }
+    .app-tile .arrow { display: none; }
+
+    .reminders-panel {
+      box-sizing: border-box;
+      position: static;
+      max-height: none;
+      margin: 0;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      display: none; /* shown via bottom nav JS */
+    }
+    .reminders-panel.mobile-active {
+      display: block;
+    }
+
+    .admin-link { padding: 0 16px; margin-bottom: 24px; }
+  }
+
+  /* ---- Mobile bottom navigation ---- */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(60px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 200;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  }
+
+  .mbn-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 6px 0;
+    position: relative;
+    transition: color 0.15s;
+  }
+  .mbn-btn svg { width: 22px; height: 22px; }
+  .mbn-btn.active { color: var(--accent); }
+  .mbn-btn.active svg { stroke: var(--accent); }
+
+  .mbn-badge {
+    position: absolute;
+    top: 4px; right: calc(50% - 18px);
+    background: var(--danger, #ef4444);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Pad the main content so it's not hidden behind the nav bar */
+  @media (max-width: 640px) {
+    #app-view { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+  }
+
+  /* ---- Mobile profile sheet ---- */
+  #mobile-profile-sheet {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.45);
+    z-index: 199;
+    display: flex;
+    align-items: flex-end;
+  }
+  .mps-content {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px calc(20px + env(safe-area-inset-bottom));
+    width: 100%;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+  }
+  .mps-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+  .mps-username {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .mps-role {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 22px;
+  }
+  .mps-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mps-action-btn {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+    box-sizing: border-box;
+  }
+  .mps-action-btn:hover { background: var(--surface-raised); }
+  .mps-action-btn.danger { color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3); }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <strong>PFT SAFETY</strong>
+        <span>Peroorkada Factory</span>
+      </div>
+    </div>
+    <div class="session-chip" id="session-chip">
+      <span class="dot"></span>
+      <span id="session-username">—</span>
+      <button class="btn-logout" id="btn-logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="install-banner-wrap" id="install-banner-wrap">
+    <div class="install-banner">
+      <div class="ib-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4M8 12l4 4 4-4"/><path d="M4 20h16"/>
+        </svg>
+      </div>
+      <div class="ib-text">
+        <div class="ib-title">Add to Home Screen</div>
+        <div class="ib-sub" id="ib-sub">Offline access &amp; faster loads</div>
+      </div>
+      <div class="ib-actions">
+        <button class="ib-install-btn" id="ib-install-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 16V4M8 12l4 4 4-4"/><path d="M4 20h16"/>
+          </svg>
+          <span>Install</span>
+        </button>
+        <button class="ib-dismiss" id="ib-dismiss" title="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE BOTTOM NAV (only visible in app-view on mobile) ============ -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" style="display:none;">
+    <button class="mbn-btn active" id="mbn-apps" data-tab="apps">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      <span>Apps</span>
+    </button>
+    <button class="mbn-btn" id="mbn-reminders" data-tab="reminders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span>Reminders</span>
+      <span class="mbn-badge" id="mbn-reminders-badge" style="display:none;"></span>
+    </button>
+    <button class="mbn-btn" id="mbn-profile" data-tab="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+      </svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- ============ MOBILE PROFILE SHEET ============ -->
+  <div id="mobile-profile-sheet" style="display:none;">
+    <div class="mps-content">
+      <div class="mps-avatar" id="mps-avatar">—</div>
+      <div class="mps-username" id="mps-username">—</div>
+      <div class="mps-role" id="mps-role"></div>
+      <div class="mps-actions">
+        <a href="change-pin.html" class="mps-action-btn">Change PIN</a>
+        <a href="admin.html" id="mps-admin-link" style="display:none;" class="mps-action-btn">Admin panel</a>
+        <button class="mps-action-btn danger" id="mps-logout">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOGIN VIEW ============ -->
+  <div id="login-view">
+    <div class="split-login">
+      <div class="brand-panel">
+        <div class="blob blob-a"></div>
+        <div class="blob blob-b"></div>
+        <div class="blob blob-c"></div>
+        <canvas id="brand-dots" class="brand-dots-canvas"></canvas>
+        <div class="brand-copy">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>
+            </svg>
+          </div>
+          <div class="eyebrow" id="brand-greeting">WELCOME</div>
+          <h1>PFT Safety</h1>
+          <p class="brand-desc">Your unified digital platform for the Safety &amp; Environment Department — real-time PPE and equipment tracking, permit-to-work scanning, and centralized incident &amp; near-miss reporting, all in one place.</p>
+        </div>
+      </div>
+
+      <div class="form-panel">
+        <div class="login-card">
+
+          <!-- Quick unlock — shown when this device has a saved login -->
+          <div id="quick-unlock-view" style="display:none;">
+            <h1 id="qu-greeting">Welcome back</h1>
+            <p class="sub">Sign in as <strong id="qu-username">—</strong></p>
+            <p class="sub" id="qu-last-login" style="font-size:11.5px; color:var(--text-muted); margin-top:-6px;"></p>
+            <button type="button" class="btn-primary" id="qu-unlock-btn" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 11a2 2 0 0 0-2 2c0 1.5-.3 3.5-.8 5"/>
+                <path d="M8 13a4 4 0 0 1 8 0c0 1.9-.2 3.9-.6 5.5"/>
+                <path d="M4 13a8 8 0 0 1 15.5-3"/>
+                <path d="M16 4.5A8 8 0 0 1 20 13c0 .8-.05 1.6-.15 2.4"/>
+                <path d="M12 17c-.1.7-.3 1.4-.5 2"/>
+              </svg>
+              Unlock with fingerprint
+            </button>
+            <div class="form-msg" id="qu-msg"></div>
+            <div class="signup-row">
+              <a id="qu-use-pin">Use PIN instead</a> &nbsp;·&nbsp; <a id="qu-different-account">Not you?</a>
+            </div>
+          </div>
+
+          <!-- Full typed form -->
+          <div id="full-login-view">
+          <h1>Sign in</h1>
+          <p class="sub">Enter your username and PIN to continue.</p>
+
+          <form id="login-form">
+            <div class="field">
+              <label for="login-username">Username</label>
+              <div class="input-icon-wrap">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>
+                </svg>
+                <input type="text" id="login-username" autocomplete="username" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="login-pin">PIN</label>
+              <div class="input-icon-wrap">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                </svg>
+                <input type="password" id="login-pin" inputmode="numeric" autocomplete="current-password" required>
+                <button type="button" class="pin-toggle" id="pin-toggle">SHOW</button>
+              </div>
+            </div>
+            <div class="remember-row">
+              <label><input type="checkbox" id="login-remember"> Remember me</label>
+              <a id="forgot-pin-link">Forgot PIN?</a>
+            </div>
+            <button type="submit" class="btn-primary" id="login-submit">Sign in</button>
+            <div class="form-msg" id="login-msg"></div>
+          </form>
+
+          <div class="signup-row">
+            No account yet? <a id="signup-link">Request access</a>
+          </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LAUNCHER VIEW ============ -->
+  <div id="app-view">
+    <div class="stat-strip" id="stat-strip"></div>
+
+    <div class="launcher-layout">
+      <div class="launcher-main">
+        <div class="app-search-wrap">
+          <div class="app-search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="text" class="app-search" id="app-search" placeholder="Search apps…">
+          </div>
+        </div>
+
+        <div class="app-grid" id="app-grid"></div>
+
+        <div class="admin-link" id="admin-link" style="display:none;">
+          <a href="admin.html">Admin panel →</a>
+        </div>
+      </div>
+
+      <aside class="reminders-panel">
+        <div class="reminders-header">
+          <div style="display:flex; align-items:center; gap:7px;">
+            <h3>Reminders</h3>
+            <span id="reminders-count-badge" style="display:none; background:var(--accent); color:#fff;
+              font-size:10px; font-weight:700; min-width:18px; height:18px; border-radius:9px;
+              padding:0 5px; display:none; align-items:center; justify-content:center;"></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="add-reminder-btn" id="notif-toggle-btn" title="Enable notifications" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+            </button>
+            <a id="manage-reminders-link" style="font-size:11.5px; color:var(--accent); cursor:pointer; text-decoration:none; font-weight:600;">Manage</a>
+            <button class="add-reminder-btn" id="add-reminder-btn" title="Add reminder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="reminders-list">
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
+          <div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const SESSION_KEY = PFT_CONFIG.SESSION_KEY || 'pft_session';
+    const API_URL = PFT_CONFIG.API_URL;
+
+    // Icon lookup used by admin.html's picker and the app data returned
+    // from the backend — the Apps sheet stores the key, not raw SVG.
+    const ICONS = {
+      shield: '<path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/>',
+      qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/>',
+      boot: '<path d="M4 17v-3c0-1 1-2 2-2l4-3 3 2h5a2 2 0 0 1 2 2v1c0 2-2 3-4 3H6a2 2 0 0 1-2-2Z"/>',
+      clipboard: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+      extinguisher: '<path d="M12 3v4M8 7h8l-1 3H9L8 7Z"/><path d="M9 10v9a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-9"/>',
+      triangle: '<path d="M12 4 2 20h20L12 4Z"/><path d="M12 10v4M12 17h.01"/>',
+      chart: '<path d="M4 20V10M11 20V4M18 20v-7"/>',
+      'circle-alert': '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+      link: '<path d="M9 15 15 9"/><path d="M10 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M14 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
+      gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+      folder: '<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/>',
+      users: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 9a3 3 0 0 1 0 6"/><path d="M21 20a5.5 5.5 0 0 0-4-5.3"/>'
+    };
+
+    // Top-level so both the initial render and the search filter (attached
+    // once, outside renderLauncher) always operate on the current app list.
+    let _allApps = [];
+
+    function renderGridRaw(apps, emptyMessage) {
+      const grid = document.getElementById('app-grid');
+      if (!grid) return;
+      if (!apps || !apps.length) {
+        grid.innerHTML = `<p class="app-empty-state">${emptyMessage || 'No apps configured yet.'}</p>`;
+        return;
+      }
+      const newTab = !isMobileDevice();
+      const targetAttr = newTab ? 'target="_blank" rel="noopener noreferrer"' : '';
+      grid.innerHTML = apps.map(app => `
+        <a class="app-tile" href="${app.url}" ${targetAttr}>
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[app.icon] || ICONS.link}</svg></div>
+          <div class="name">${app.name}</div>
+          <div class="desc">${app.description || ''}</div>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </a>
+      `).join('');
+    }
+
+    // Called whenever a fresh app list arrives (from cache or network) —
+    // remembers the full list so search can filter without a refetch.
+    function renderGrid(apps) {
+      _allApps = apps || [];
+      const searchInput = document.getElementById('app-search');
+      const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      if (!q) { renderGridRaw(_allApps, 'No apps configured yet.'); return; }
+      const filtered = _allApps.filter(a =>
+        a.name.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)
+      );
+      renderGridRaw(filtered, 'No apps match your search.');
+    }
+
+    document.getElementById('app-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { renderGridRaw(_allApps, 'No apps configured yet.'); return; }
+      const filtered = _allApps.filter(a =>
+        a.name.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)
+      );
+      renderGridRaw(filtered, 'No apps match your search.');
+    });
+
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+
+    function setSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+    async function api(action, payload) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action }, payload))
+      });
+      return res.json();
+    }
+
+    // ---------- Biometric quick sign-in (WebAuthn as a local unlock gate) ----------
+    // NOTE: this does NOT verify the WebAuthn signature server-side — Apps
+    // Script has no practical way to verify ES256/ECDSA signatures. So this
+    // is a *local device gate*, not cryptographic proof to the server: a
+    // successful fingerprint/Face ID check unlocks a PIN stored in this
+    // browser's localStorage, which is then submitted through the normal
+    // login endpoint exactly as if typed. Real security still comes from
+    // the actual PIN + the server-side login/lockout logic — this only
+    // saves the person from retyping it on a device they've chosen to trust.
+    const SAVED_LOGIN_KEY = 'pft_saved_login';
+
+    function getSavedLogin() {
+      try { return JSON.parse(localStorage.getItem(SAVED_LOGIN_KEY)); } catch (e) { return null; }
+    }
+    function setSavedLogin(data) { localStorage.setItem(SAVED_LOGIN_KEY, JSON.stringify(data)); }
+    function clearSavedLogin() { localStorage.removeItem(SAVED_LOGIN_KEY); }
+
+    // Fingerprint/Face ID only makes sense on an actual phone or tablet —
+    // on a desktop web browser it's either unavailable or maps to something
+    // like Windows Hello/Touch ID, which doesn't fit this factory-device
+    // use case. Gating on user-agent (not viewport width) so a narrow
+    // desktop window doesn't accidentally trigger it, and a wide phone in
+    // landscape doesn't accidentally lose it.
+    function isMobileDevice() {
+      return /android|iphone|ipad|ipod|windows phone/i.test(navigator.userAgent);
+    }
+
+    function webAuthnSupported() {
+      return isMobileDevice() &&
+        !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+    }
+
+    function bufToB64(buf) {
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+    }
+    function b64ToBuf(b64) {
+      const bin = atob(b64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return arr.buffer;
+    }
+
+    // Registers a platform authenticator credential (triggers the actual
+    // fingerprint/Face ID prompt) and stores it alongside the PIN.
+    async function registerBiometric(username, pin) {
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const userId = crypto.getRandomValues(new Uint8Array(16));
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: challenge,
+          rp: { name: 'PFT Safety Portal' },
+          user: { id: userId, name: username, displayName: username },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+          timeout: 60000
+        }
+      });
+      setSavedLogin({ username: username, pin: pin, credentialId: bufToB64(cred.rawId) });
+    }
+
+    // Prompts the platform authenticator (fingerprint/Face ID). Resolves on
+    // success, throws/rejects if the user cancels or verification fails.
+    async function biometricAssert(credentialId) {
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      return navigator.credentials.get({
+        publicKey: {
+          challenge: challenge,
+          allowCredentials: [{ id: b64ToBuf(credentialId), type: 'public-key' }],
+          userVerification: 'required',
+          timeout: 60000
+        }
+      });
+    }
+
+    function showLogin(message) {
+      document.getElementById('login-view').style.display = 'flex';
+      document.getElementById('app-view').style.display = 'none';
+      document.getElementById('session-chip').style.display = 'none';
+
+      const saved = getSavedLogin();
+      const quickView = document.getElementById('quick-unlock-view');
+      const fullView  = document.getElementById('full-login-view');
+
+      if (saved && webAuthnSupported()) {
+        document.getElementById('qu-username').textContent = saved.username;
+        quickView.style.display = 'block';
+        fullView.style.display = 'none';
+      } else {
+        quickView.style.display = 'none';
+        fullView.style.display = 'block';
+      }
+
+      if (message) {
+        const msg = document.getElementById('login-msg');
+        msg.className = 'form-msg info';
+        msg.textContent = message;
+      }
+    }
+
+    function renderLauncher(user) {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app-view').style.display = 'block';
+      document.getElementById('session-chip').style.display = 'flex';
+      document.getElementById('session-username').textContent = user.username;
+      document.getElementById('admin-link').style.display = user.role === 'admin' ? 'block' : 'none';
+
+      // Show mobile bottom nav if on a mobile device
+      if (isMobileDevice()) {
+        const nav = document.getElementById('mobile-bottom-nav');
+        if (nav) nav.style.display = 'flex';
+        initMobileBottomNav(user);
+      }
+
+      const grid = document.getElementById('app-grid');
+      grid.innerHTML = Array.from({ length: 8 }).map(() => `
+        <div class="skeleton-tile">
+          <div class="sk-icon"></div>
+          <div class="sk-line sk-title"></div>
+          <div class="sk-line sk-desc"></div>
+          <div class="sk-line sk-desc2"></div>
+        </div>
+      `).join('');
+
+      // Use sessionStorage cache so navigating back from a sub-app doesn't
+      // fire another Apps Script round-trip just to re-render the same tiles.
+      const APPS_CACHE_KEY = 'pft_apps_cache';
+      const cached = (() => { try { return JSON.parse(localStorage.getItem(APPS_CACHE_KEY)); } catch (e) { return null; } })();
+
+      // Render from cache immediately if available, then refresh in background
+      // once the combined getLauncherData call below resolves.
+      if (cached) renderGrid(cached);
+
+      // If we rendered from cache immediately, also kick off preload
+      // immediately using those cached URLs rather than waiting on the
+      // network call below.
+      if (cached && cached.length) preloadApps(cached.map(a => a.url));
+
+      // ---- Manhours banner: instant from cache, refreshed in background ----
+      const SETTINGS_CACHE_KEY = 'pft_settings_cache';
+      function getCachedSettings() {
+        try { return JSON.parse(localStorage.getItem(SETTINGS_CACHE_KEY)); } catch (e) { return null; }
+      }
+      function setCachedSettings(s) {
+        try { localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(s)); } catch (e) {}
+      }
+
+      function fmtMH(n) { return n.toLocaleString('en-US'); }
+
+      function buildDigits(numStr) {
+        return numStr.split('').map(ch => {
+          if (ch === ',') return `<span class="sb-comma">,</span>`;
+          const slots = Array.from({length: 10}, (_, i) => `<span>${i}</span>`).join('');
+          return `<span class="sb-digit"><span class="sb-digit-inner" data-digit="${ch}">${slots}</span></span>`;
+        }).join('');
+      }
+
+      // Rolls each digit up from 0 to its target, staggered right→left.
+      function animateDigitsIn(containerEl) {
+        const slots = containerEl.querySelectorAll('.sb-digit-inner');
+        slots.forEach((inner, i) => {
+          const d = Number(inner.dataset.digit) || 0;
+          const delay = (slots.length - 1 - i) * 60;
+          setTimeout(() => { inner.style.transform = `translateY(-${d * 10}%)`; }, delay);
+        });
+      }
+
+      // Sets every digit to its correct position immediately, no roll —
+      // used when rendering from cache so there's no visible delay at all.
+      function setDigitsInstant(containerEl) {
+        const slots = containerEl.querySelectorAll('.sb-digit-inner');
+        slots.forEach(inner => {
+          const d = Number(inner.dataset.digit) || 0;
+          inner.style.transition = 'none';
+          inner.style.transform = `translateY(-${d * 10}%)`;
+          requestAnimationFrame(() => { inner.style.transition = ''; });
+        });
+      }
+
+      // Live per-second tick — updates only digits that actually changed.
+      function updateDigits(containerEl, newNum) {
+        const numStr = fmtMH(newNum);
+        const slots  = containerEl.querySelectorAll('.sb-digit-inner');
+        const digits = numStr.replace(/,/g, '').split('').map(Number);
+        slots.forEach((inner, i) => {
+          const d = digits[i] !== undefined ? digits[i] : 0;
+          if (Number(inner.dataset.digit) !== d) {
+            inner.dataset.digit = d;
+            inner.style.transform = `translateY(-${d * 10}%)`;
+          }
+        });
+      }
+
+      let _bannerTickInterval = null;
+
+      function renderBanner(s, animate) {
+        const strip = document.getElementById('stat-strip');
+
+        const incidentDateStr = s.lastIncidentDate || '2023-12-02';
+        const totalWorkers    = Number(s.totalWorkforce) || 1500;
+        const shiftHours      = Number(s.shiftHours)     || 8;
+        const incidentDate    = new Date(incidentDateStr + 'T00:00:00');
+
+        function calcValues() {
+          const diffMs   = Date.now() - incidentDate.getTime();
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          return {
+            days:     Math.floor(diffDays),
+            manhours: Math.floor(diffDays * totalWorkers * shiftHours)
+          };
+        }
+
+        const lastDateLabel = incidentDate.toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        });
+        const initial = calcValues();
+
+        strip.innerHTML = `
+          <div class="safety-banner">
+            <div class="sb-accent"></div>
+            <div class="sb-inner">
+              <div class="sb-manhours">
+                <div class="sb-eyebrow">Accident-free manhours continuously worked</div>
+                <div class="sb-count-row">
+                  <div class="sb-number" id="sb-mh">${buildDigits(fmtMH(initial.manhours))}</div>
+                  <div class="sb-unit">Manhours</div>
+                </div>
+              </div>
+              <div class="sb-divider"></div>
+              <div class="sb-stats-col">
+                <div class="sb-stat">
+                  <div class="sb-stat-label days-label">Safe calendar days</div>
+                  <div class="sb-stat-value" id="sb-days">${initial.days.toLocaleString('en-US')}</div>
+                </div>
+              </div>
+              <div class="sb-divider"></div>
+              <div class="sb-stats-col">
+                <div class="sb-stat">
+                  <div class="sb-stat-label date-label">Last incident date</div>
+                  <div class="sb-stat-value date-val">${lastDateLabel}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const mhEl = document.getElementById('sb-mh');
+        if (animate) {
+          setTimeout(() => { if (mhEl) animateDigitsIn(mhEl); }, 300);
+        } else if (mhEl) {
+          setDigitsInstant(mhEl);
+        }
+
+        if (_bannerTickInterval) clearInterval(_bannerTickInterval);
+        _bannerTickInterval = setInterval(() => {
+          const v    = calcValues();
+          const mh   = document.getElementById('sb-mh');
+          const days = document.getElementById('sb-days');
+          if (mh)   updateDigits(mh, v.manhours);
+          if (days) days.textContent = v.days.toLocaleString('en-US');
+        }, 1000);
+      }
+
+      const cachedSettings = getCachedSettings();
+      if (cachedSettings) {
+        renderBanner(cachedSettings, false); // instant — no cold-start wait visible
+      } else {
+        document.getElementById('stat-strip').innerHTML = `
+          <div class="safety-banner" style="min-height:96px; display:flex; align-items:center; padding-left:32px;">
+            <span style="color:rgba(255,255,255,0.5); font-size:13px;">Loading safety stats…</span>
+          </div>
+        `;
+      }
+
+      // Single round trip for the app grid, the banner, and the reminders
+      // sidebar — separate near-simultaneous Apps Script calls tend to
+      // queue behind each other rather than run in parallel, which is what
+      // made the launcher feel slow to fully appear after login.
+      const session = getSession();
+      document.getElementById('reminders-list').innerHTML =
+        '<div class="skeleton-reminder"><div class="sk-line sk-r-title"></div><div class="sk-line sk-r-meta"></div></div>'.repeat(3);
+
+      api('getLauncherData', { token: session ? session.token : '' }).then(res => {
+        if (!res.ok) {
+          if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
+          return;
+        }
+
+        if (res.apps) {
+          try { localStorage.setItem(APPS_CACHE_KEY, JSON.stringify(res.apps)); } catch (e) {}
+          renderGrid(res.apps);
+          preloadApps(res.apps.map(a => a.url));
+        }
+
+        if (res.settings) {
+          const isFirstRender = !cachedSettings;
+          setCachedSettings(res.settings);
+          renderBanner(res.settings, isFirstRender);
+        }
+
+        _remindersCache = res.reminders || [];
+        renderReminders(_remindersCache);
+      }).catch(() => {
+        if (!cached) grid.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Could not load apps. Check your connection.</p>';
+        document.getElementById('reminders-list').innerHTML = '<p class="reminders-empty">Could not load reminders.</p>';
+      });
+    }
+
+    // Preloads all app URLs so tapping a tile opens an already-fetched page
+    // instead of a cold load. Uses the Speculation Rules API where
+    // supported (Chrome/Edge) — it's the modern successor to
+    // <link rel="prefetch"> for document navigation: not blocked by
+    // Cache-Control the same way, and visible in DevTools under
+    // Application → Speculative loads. Falls back to <link rel="prefetch">
+    // on browsers without Speculation Rules support.
+    function preloadApps(urls) {
+      const PRELOAD_KEY = 'pft_preloaded';
+      if (sessionStorage.getItem(PRELOAD_KEY)) return; // once per tab session
+      if (!urls || !urls.length) return;
+
+      const validUrls = urls.filter(u => u && u.startsWith('http'));
+      if (!validUrls.length) return;
+
+      sessionStorage.setItem(PRELOAD_KEY, '1');
+
+      const supportsSpecRules = 'HTMLScriptElement' in window &&
+        HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules');
+
+      if (supportsSpecRules) {
+        const script = document.createElement('script');
+        script.type = 'speculationrules';
+        script.textContent = JSON.stringify({
+          prefetch: [{ source: 'list', urls: validUrls, eagerness: 'immediate' }]
+        });
+        document.head.appendChild(script);
+        return;
+      }
+
+      // Fallback for browsers without Speculation Rules support.
+      const supportsLinkPrefetch = 'relList' in document.createElement('link') &&
+        document.createElement('link').relList.supports('prefetch');
+
+      validUrls.forEach(url => {
+        if (supportsLinkPrefetch) {
+          const link = document.createElement('link');
+          link.rel  = 'prefetch';
+          link.href = url;
+          link.as   = 'document';
+          document.head.appendChild(link);
+        } else {
+          fetch(url, { mode: 'no-cors', credentials: 'omit' }).catch(() => {});
+        }
+      });
+    }
+
+    // ---------- Daily unlock gate ----------
+    // Session tokens are now long-lived (see REMEMBER_DAYS in Code.gs), so
+    // the token alone isn't enough to keep a shared/lost device secure day
+    // to day. This adds a separate, local check: even with a fully valid
+    // token, the person must re-verify with PIN or fingerprint once per
+    // "day" — where the day boundary resets at 6pm, not midnight, so an
+    // unlock in the evening still counts fresh the next morning.
+    const LAST_UNLOCK_KEY = 'pft_last_unlock';
+
+    function getDailyBoundary() {
+      const now = new Date();
+      const boundary = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0, 0, 0);
+      if (now < boundary) boundary.setDate(boundary.getDate() - 1);
+      return boundary;
+    }
+
+    function needsDailyUnlock() {
+      const raw = localStorage.getItem(LAST_UNLOCK_KEY);
+      if (!raw) return true;
+      const lastUnlock = new Date(Number(raw));
+      if (isNaN(lastUnlock.getTime())) return true;
+      return lastUnlock < getDailyBoundary();
+    }
+
+    function markUnlockedNow() {
+      localStorage.setItem(LAST_UNLOCK_KEY, String(Date.now()));
+    }
+
+    async function init() {
+      const session = getSession();
+      if (!session || !session.token) { showLogin(); return; }
+
+      // If the session is locally expired, don't even try the network.
+      if (session.expiresAt && new Date(session.expiresAt) < new Date()) {
+        clearSession();
+        showLogin('Your session expired. Please sign in again.');
+        return;
+      }
+
+      // Token is valid, but require a fresh PIN/fingerprint check if it's
+      // been a new "day" (6pm boundary) since the last unlock — applies
+      // whether arriving here directly or bounced back from a sub-app.
+      if (needsDailyUnlock()) {
+        showLogin();
+        return;
+      }
+
+      const params = new URLSearchParams(location.search);
+      const redirect = params.get('redirect');
+
+      // Render immediately from the local session — no API round-trip before
+      // the user sees the launcher. This is what eliminates the blank flash
+      // when navigating back from admin.html.
+      if (!redirect) {
+        renderLauncher({ username: session.username, role: session.role });
+      }
+
+      // Validate in the background. If the server rejects the token
+      // (genuinely expired/revoked), pull back to login at that point.
+      api('validateSession', { token: session.token }).then(check => {
+        if (!check.ok) {
+          clearSession();
+          showLogin('Your session expired. Please sign in again.');
+          return;
+        }
+        // If the redirect param is set, send them back to the sub-app now
+        // that we've confirmed the session is live.
+        if (redirect) {
+          location.href = redirect;
+          return;
+        }
+        // Silently refresh username/role in case role changed since last login.
+        if (check.username !== session.username || check.role !== session.role) {
+          const updated = Object.assign({}, session, { username: check.username, role: check.role });
+          setSession(updated);
+          renderLauncher({ username: check.username, role: check.role });
+        }
+      }).catch(() => {
+        // Network failure — local session is still trusted until it expires.
+      });
+    }
+
+    // Shared by both the typed form and biometric quick-unlock — handles
+    // the actual login call, session storage, and where to go next.
+    // Returns true on success so callers can react (e.g. offer to save
+    // biometric login) without duplicating this logic.
+    async function doLogin(username, pin, remember, msgEl) {
+      msgEl.className = 'form-msg';
+      msgEl.textContent = '';
+      try {
+        const res = await api('login', { username, pin, remember });
+        if (!res.ok) {
+          msgEl.className = 'form-msg error';
+          msgEl.textContent = res.error || 'Sign in failed.';
+          return false;
+        }
+        setSession({ token: res.token, username: res.username, role: res.role, expiresAt: res.expiresAt });
+        markUnlockedNow();
+
+        if (res.forcePinChange) {
+          location.href = 'change-pin.html';
+          return true;
+        }
+
+        // Offer to save biometric login only after a manual, successful,
+        // non-forced login — and only once per username per device.
+        if (webAuthnSupported() && !getSavedLogin() &&
+            !localStorage.getItem('pft_biometric_declined_' + username)) {
+          const wantsIt = await offerBiometricSaveModal(username);
+          if (wantsIt) {
+            try { await registerBiometric(username, pin); }
+            catch (e) { /* user cancelled the fingerprint prompt — fine, just skip */ }
+          } else {
+            localStorage.setItem('pft_biometric_declined_' + username, '1');
+          }
+        }
+
+        const params = new URLSearchParams(location.search);
+        const redirect = params.get('redirect');
+        if (redirect) { location.href = redirect; return true; }
+        renderLauncher({ username: res.username, role: res.role });
+        return true;
+      } catch (err) {
+        msgEl.className = 'form-msg error';
+        msgEl.textContent = 'Could not reach the server. Check your connection.';
+        return false;
+      }
+    }
+
+    // Generic on-brand confirm modal — resolves true/false based on choice.
+    // Reused for logout confirmation and anywhere else a "are you sure"
+    // step is needed, without a plain browser confirm() dialog.
+    // ---------- Mobile bottom navigation ----------
+    let _mobileActiveTab = 'apps';
+
+    function initMobileBottomNav(user) {
+      // Populate profile sheet
+      const initials = (user.username || '?').slice(0, 2).toUpperCase();
+      const avatarEl = document.getElementById('mps-avatar');
+      const usernameEl = document.getElementById('mps-username');
+      const roleEl = document.getElementById('mps-role');
+      const adminLink = document.getElementById('mps-admin-link');
+      if (avatarEl) avatarEl.textContent = initials;
+      if (usernameEl) usernameEl.textContent = user.username;
+      if (roleEl) roleEl.textContent = user.role;
+      if (adminLink) adminLink.style.display = user.role === 'admin' ? 'block' : 'none';
+
+      // Profile sheet logout button
+      const mpsLogout = document.getElementById('mps-logout');
+      if (mpsLogout) {
+        mpsLogout.addEventListener('click', async () => {
+          document.getElementById('mobile-profile-sheet').style.display = 'none';
+          document.getElementById('btn-logout').click();
+        });
+      }
+
+      // Close profile sheet on backdrop tap
+      const sheet = document.getElementById('mobile-profile-sheet');
+      if (sheet) {
+        sheet.addEventListener('click', e => {
+          if (e.target === sheet) sheet.style.display = 'none';
+        });
+      }
+
+      // Tab switching
+      ['apps', 'reminders', 'profile'].forEach(tab => {
+        const btn = document.getElementById('mbn-' + tab);
+        if (!btn) return;
+        btn.addEventListener('click', () => switchMobileTab(tab));
+      });
+
+      // Pull-to-refresh on app grid
+      initPullToRefresh();
+    }
+
+    function switchMobileTab(tab) {
+      _mobileActiveTab = tab;
+
+      // Update button states
+      ['apps', 'reminders', 'profile'].forEach(t => {
+        const btn = document.getElementById('mbn-' + t);
+        if (btn) btn.classList.toggle('active', t === tab);
+      });
+
+      const launcher = document.querySelector('.launcher-main');
+      const remindersPanel = document.querySelector('.reminders-panel');
+      const profileSheet = document.getElementById('mobile-profile-sheet');
+
+      if (tab === 'apps') {
+        if (launcher) launcher.style.display = 'block';
+        if (remindersPanel) remindersPanel.classList.remove('mobile-active');
+        if (profileSheet) profileSheet.style.display = 'none';
+      } else if (tab === 'reminders') {
+        if (launcher) launcher.style.display = 'none';
+        if (remindersPanel) remindersPanel.classList.add('mobile-active');
+        if (profileSheet) profileSheet.style.display = 'none';
+      } else if (tab === 'profile') {
+        if (launcher) launcher.style.display = 'block';
+        if (remindersPanel) remindersPanel.classList.remove('mobile-active');
+        if (profileSheet) profileSheet.style.display = 'flex';
+      }
+    }
+
+    // Sync reminder count badge on the bottom nav bell
+    function syncMobileReminderBadge(count) {
+      const badge = document.getElementById('mbn-reminders-badge');
+      if (!badge) return;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Pull-to-refresh — a gentle downward drag on the app grid
+    // fires a fresh getLauncherData call.
+    function initPullToRefresh() {
+      const grid = document.getElementById('app-grid');
+      if (!grid || !isMobileDevice()) return;
+
+      let startY = 0;
+      let pulling = false;
+      let indicator = null;
+
+      function getIndicator() {
+        if (!indicator) {
+          indicator = document.createElement('div');
+          indicator.style.cssText = `
+            position:fixed; top:70px; left:50%; transform:translateX(-50%);
+            background:var(--surface); border:1px solid var(--border);
+            border-radius:20px; padding:6px 14px; font-size:12px;
+            color:var(--text-secondary); z-index:300;
+            box-shadow:0 4px 12px rgba(0,0,0,0.08);
+            display:none; align-items:center; gap:6px;
+          `;
+          indicator.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0 1 15.3-6.4L21 8M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-15.3 6.4L3 16"/>
+            </svg>
+            <span id="ptr-label">Pull to refresh</span>
+          `;
+          document.body.appendChild(indicator);
+        }
+        return indicator;
+      }
+
+      document.addEventListener('touchstart', e => {
+        if (window.scrollY === 0) {
+          startY = e.touches[0].clientY;
+          pulling = true;
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchmove', e => {
+        if (!pulling) return;
+        const dy = e.touches[0].clientY - startY;
+        if (dy > 40) {
+          const ind = getIndicator();
+          ind.style.display = 'flex';
+          ind.querySelector('#ptr-label').textContent = dy > 90 ? 'Release to refresh' : 'Pull to refresh';
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchend', async e => {
+        if (!pulling) return;
+        const dy = e.changedTouches[0].clientY - startY;
+        pulling = false;
+        const ind = indicator;
+        if (dy > 90 && ind) {
+          ind.querySelector('#ptr-label').textContent = 'Refreshing…';
+          ind.querySelector('svg').style.animation = 'spin 0.7s linear infinite';
+          const session = getSession();
+          try {
+            const res = await api('getLauncherData', { token: session ? session.token : '' });
+            if (res.ok) {
+              if (res.apps) { try { localStorage.setItem('pft_apps_cache', JSON.stringify(res.apps)); } catch (e) {} renderGrid(res.apps); }
+              if (res.settings) { setCachedSettings(res.settings); renderBanner(res.settings, false); }
+              if (res.reminders) { _remindersCache = res.reminders; renderReminders(_remindersCache); }
+            }
+          } catch (e) {}
+        }
+        if (ind) { ind.style.display = 'none'; if (ind.querySelector('svg')) ind.querySelector('svg').style.animation = ''; }
+        startY = 0;
+      }, { passive: true });
+    }
+
+    function showConfirmModal(opts) {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position:fixed; inset:0; background:rgba(15,23,42,0.45);
+          display:flex; align-items:center; justify-content:center;
+          z-index:9999; padding:20px;
+        `;
+        overlay.innerHTML = `
+          <div style="background:#fff; border-radius:14px; max-width:320px; width:100%;
+                      padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25);">
+            <h3 style="margin:0 0 8px; font-size:16px; color:#16213d;">${opts.title}</h3>
+            <p style="margin:0 0 20px; font-size:13px; color:#5b6472; line-height:1.5;">${opts.message}</p>
+            <div style="display:flex; gap:8px;">
+              <button id="cm-confirm" style="flex:1; background:${opts.danger ? '#dc2626' : '#12244a'}; color:#fff; border:none;
+                padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                ${opts.confirmLabel || 'Confirm'}
+              </button>
+              <button id="cm-cancel" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
+                padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
+                ${opts.cancelLabel || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#cm-confirm').addEventListener('click', () => { overlay.remove(); resolve(true); });
+        overlay.querySelector('#cm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
+      });
+    }
+
+    // ---------- Reminders ----------
+    let _remindersCache = [];
+
+    async function loadReminders() {
+      const session = getSession();
+      if (!session || !session.token) return;
+      const list = document.getElementById('reminders-list');
+      const res = await api('getReminders', { token: session.token });
+      if (!res.ok) {
+        list.innerHTML = `<p class="reminders-empty">${res.error || 'Could not load reminders.'}</p>`;
+        return;
+      }
+      _remindersCache = res.reminders || [];
+      renderReminders(_remindersCache);
+    }
+
+    // Shared markup for one reminder row — used by both the compact
+    // sidebar (delete only) and the "Manage" modal (edit + delete).
+    function buildReminderItemHTML(r, showEdit) {
+      const soon = r.daysUntil <= 14;
+      const dateLabel = new Date(r.nextOccurrence + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const daysLabel = r.daysUntil === 0 ? 'Today' : r.daysUntil === 1 ? 'Tomorrow' : r.daysUntil < 0 ? 'Past' : `In ${r.daysUntil}d`;
+      return `
+        <div class="reminder-item" data-id="${r.id}">
+          <div class="reminder-top-row">
+            <div style="min-width:0;">
+              <div class="reminder-title">${r.title}</div>
+              <div class="reminder-meta">
+                <span>${dateLabel}</span>
+                <span>·</span>
+                <span>${daysLabel}</span>
+                ${soon ? '<span class="reminder-badge soon">Soon</span>' : ''}
+                ${r.recurrence === 'yearly' ? '<span class="reminder-badge yearly">Yearly</span>' : ''}
+              </div>
+              ${r.description ? `<div class="reminder-desc">${r.description}</div>` : ''}
+              ${r.visibility === 'public' && !r.isOwner ? `<div class="reminder-meta" style="margin-top:4px;">by ${r.username}</div>` : ''}
+            </div>
+            <div style="display:flex; gap:4px; flex-shrink:0;">
+              ${r.isOwner && showEdit ? `
+                <button class="reminder-edit" data-id="${r.id}" title="Edit" style="background:none; border:none; color:var(--text-muted);
+                  width:20px; height:20px; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
+                    <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                  </svg>
+                </button>
+              ` : ''}
+              ${r.isOwner ? `
+                <button class="reminder-del" data-id="${r.id}" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function wireDeleteButtons(container, onDone) {
+      container.querySelectorAll('.reminder-del').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const confirmed = await showConfirmModal({
+            title: 'Delete reminder?',
+            message: 'This cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            danger: true
+          });
+          if (!confirmed) return;
+          const session = getSession();
+          await api('deleteReminder', { token: session.token, id });
+          await loadReminders();
+          if (onDone) onDone();
+        });
+      });
+    }
+
+    function wireEditButtons(container, onDone) {
+      container.querySelectorAll('.reminder-edit').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const reminder = _remindersCache.find(r => r.id === id);
+          if (!reminder) return;
+          const saved = await showAddReminderModal(reminder);
+          if (saved) {
+            await loadReminders();
+            if (onDone) onDone();
+          }
+        });
+      });
+    }
+
+    // Sidebar — only reminders inside their own alert window.
+    // Grouped by "This week / This month / Later" and updates the count badge.
+    function renderReminders(reminders) {
+      const list = document.getElementById('reminders-list');
+      const badge = document.getElementById('reminders-count-badge');
+      const due = reminders.filter(r => r.due);
+
+      // Update count badge
+      if (badge) {
+        if (due.length > 0) {
+          badge.textContent = due.length;
+          badge.style.display = 'inline-flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+      // Also sync the bottom nav bell badge on mobile
+      syncMobileReminderBadge(due.length);
+
+      if (!due.length) {
+        list.innerHTML = `
+          <div class="reminders-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              <line x1="12" y1="2" x2="12" y2="2.5"/>
+            </svg>
+            <p>No due reminders</p>
+            <p style="font-size:11px; margin-top:3px; color:var(--text-muted);">Tap + to add one, or Manage to see all.</p>
+          </div>`;
+        return;
+      }
+
+      // Group by time bracket
+      const week  = due.filter(r => r.daysUntil <= 7);
+      const month = due.filter(r => r.daysUntil > 7 && r.daysUntil <= 30);
+      const later = due.filter(r => r.daysUntil > 30);
+
+      let html = '';
+      if (week.length) {
+        html += '<div class="reminders-group-label">This week</div>';
+        html += week.map(r => buildReminderItemHTML(r, false)).join('');
+      }
+      if (month.length) {
+        html += '<div class="reminders-group-label">This month</div>';
+        html += month.map(r => buildReminderItemHTML(r, false)).join('');
+      }
+      if (later.length) {
+        html += '<div class="reminders-group-label">Later</div>';
+        html += later.map(r => buildReminderItemHTML(r, false)).join('');
+      }
+
+      list.innerHTML = html;
+      wireDeleteButtons(list);
+    }
+
+    // "Manage" modal — every reminder visible to the user (due or not),
+    // with edit + delete for the ones they own.
+    function showManageRemindersModal() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position:fixed; inset:0; background:rgba(15,23,42,0.45);
+        display:flex; align-items:center; justify-content:center;
+        z-index:9999; padding:20px;
+      `;
+      overlay.innerHTML = `
+        <div style="background:#fff; border-radius:14px; max-width:420px; width:100%;
+                    padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25); max-height:80vh; display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <h3 style="margin:0; font-size:16px; color:#16213d;">All reminders</h3>
+            <button id="mr-close" style="background:none; border:none; color:#8892a0; cursor:pointer; width:26px; height:26px;">✕</button>
+          </div>
+          <div id="mr-list" style="overflow-y:auto; flex:1;"></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      function refresh() {
+        const listEl = overlay.querySelector('#mr-list');
+        if (!_remindersCache.length) {
+          listEl.innerHTML = '<p class="reminders-empty">No reminders yet.</p>';
+          return;
+        }
+        listEl.innerHTML = _remindersCache.map(r => buildReminderItemHTML(r, true)).join('');
+        wireDeleteButtons(listEl, refresh);
+        wireEditButtons(listEl, refresh);
+      }
+      refresh();
+
+      overlay.querySelector('#mr-close').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    document.getElementById('manage-reminders-link').addEventListener('click', showManageRemindersModal);
+
+    // ---------- Push notifications (Firebase Cloud Messaging) ----------
+    const FIREBASE_CONFIG = {
+      apiKey: 'AIzaSyAmWZAYQWL-6Yqhua59aJUkjs_vXBPttRI',
+      authDomain: 'pftportal-59903.firebaseapp.com',
+      projectId: 'pftportal-59903',
+      storageBucket: 'pftportal-59903.firebasestorage.app',
+      messagingSenderId: '305683563237',
+      appId: '1:305683563237:web:c6b474bacabfdd7c260a0c'
+    };
+    const FCM_VAPID_KEY = 'BO6EUbruNywPTo-Xr1HXTsfs8LL46QCKfBE8qi75QYdHNWHx5nQL4VALLXGO15tkbMtIanzLHS2T1IUYw7FOT7E';
+    const PUSH_ENABLED_KEY = 'pft_push_enabled';
+
+    function pushSupported() {
+      return 'Notification' in window && 'serviceWorker' in navigator && window.isSecureContext;
+    }
+
+    function updateNotifButton() {
+      const btn = document.getElementById('notif-toggle-btn');
+      if (!btn) return;
+      if (!pushSupported()) { btn.style.display = 'none'; return; }
+      btn.style.display = 'flex';
+      const enabled = Notification.permission === 'granted' && localStorage.getItem(PUSH_ENABLED_KEY) === '1';
+      btn.classList.toggle('enabled', enabled);
+      btn.title = enabled ? 'Notifications enabled' : 'Enable notifications';
+    }
+
+    async function enablePushNotifications() {
+      if (!pushSupported()) return;
+
+      if (Notification.permission === 'denied') {
+        alert('Notifications are blocked for this site. Enable them in your browser/site settings, then try again.');
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const messaging = firebase.messaging();
+        const fcmToken = await messaging.getToken({
+          vapidKey: FCM_VAPID_KEY,
+          serviceWorkerRegistration: reg
+        });
+        if (!fcmToken) return;
+
+        const session = getSession();
+        if (!session || !session.token) return;
+
+        await api('saveNotificationToken', { token: session.token, fcmToken });
+        localStorage.setItem(PUSH_ENABLED_KEY, '1');
+        updateNotifButton();
+      } catch (err) {
+        console.error('Push registration failed:', err);
+        alert('Could not enable notifications on this device.');
+      }
+    }
+
+    function initFirebaseMessaging() {
+      if (!pushSupported()) return;
+      try {
+        if (!firebase.apps || !firebase.apps.length) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        // Foreground messages (app open and focused) — background messages
+        // are handled in sw.js's onBackgroundMessage instead.
+        const messaging = firebase.messaging();
+        messaging.onMessage(payload => {
+          const title = (payload.notification && payload.notification.title) || 'PFT Safety Portal';
+          const body = (payload.notification && payload.notification.body) || '';
+          if (Notification.permission === 'granted') {
+            navigator.serviceWorker.ready.then(reg => {
+              reg.showNotification(title, { body: body, icon: 'icon-192.png' });
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Firebase messaging init failed:', e);
+      }
+      updateNotifButton();
+    }
+
+    const notifBtn = document.getElementById('notif-toggle-btn');
+    if (notifBtn) notifBtn.addEventListener('click', enablePushNotifications);
+
+    initFirebaseMessaging();
+
+    function showAddReminderModal(existingReminder) {
+      const isEdit = !!existingReminder;
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position:fixed; inset:0; background:rgba(15,23,42,0.45);
+          display:flex; align-items:center; justify-content:center;
+          z-index:9999; padding:20px; overflow-y:auto;
+        `;
+        overlay.innerHTML = `
+          <div style="background:#fff; border-radius:14px; max-width:360px; width:100%;
+                      padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+            <h3 style="margin:0 0 16px; font-size:16px; color:#16213d;">${isEdit ? 'Edit reminder' : 'Add reminder'}</h3>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Title</label>
+              <input type="text" id="rm-title" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Description (optional)</label>
+              <textarea id="rm-desc" rows="2" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit; resize:vertical;"></textarea>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Date</label>
+              <input type="date" id="rm-date" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Repeats</label>
+                <select id="rm-recurrence" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                  border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                  <option value="once">Once</option>
+                  <option value="yearly">Every year</option>
+                </select>
+              </div>
+              <div style="flex:1;">
+                <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Visible to</label>
+                <select id="rm-visibility" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                  border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                  <option value="private">Only me</option>
+                  <option value="public">Everyone</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Email me before the date</label>
+              <select id="rm-alert" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+                <option value="0">On the exact date</option>
+                <option value="7">1 week</option>
+                <option value="14">2 weeks</option>
+                <option value="30">1 month</option>
+                <option value="60">2 months</option>
+                <option value="90">3 months</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:18px;">
+              <label style="display:block; font-size:12px; color:#5b6472; margin-bottom:5px;">Notify email(s)</label>
+              <input type="email" id="rm-email" multiple placeholder="you@example.com, another@example.com" style="width:100%; box-sizing:border-box; background:#f3f5f9; border:1px solid #e2e5ea;
+                border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit;">
+              <div style="font-size:11px; color:#9aa2b1; margin-top:4px;">Separate multiple addresses with commas.</div>
+            </div>
+
+            <div id="rm-error" style="display:none; font-size:12.5px; color:#b91c1c; background:#fdecea; border:1px solid #f5c6c2;
+              border-radius:8px; padding:9px 11px; margin-bottom:14px;"></div>
+
+            <div style="display:flex; gap:8px;">
+              <button id="rm-save" style="flex:1; background:#12244a; color:#fff; border:none;
+                padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                ${isEdit ? 'Save changes' : 'Save reminder'}
+              </button>
+              <button id="rm-cancel" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
+                padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Pre-fill fields when editing.
+        if (isEdit) {
+          overlay.querySelector('#rm-title').value = existingReminder.title || '';
+          overlay.querySelector('#rm-desc').value = existingReminder.description || '';
+          overlay.querySelector('#rm-date').value = existingReminder.eventDate || '';
+          overlay.querySelector('#rm-recurrence').value = existingReminder.recurrence || 'once';
+          overlay.querySelector('#rm-visibility').value = existingReminder.visibility || 'private';
+          overlay.querySelector('#rm-alert').value = String(existingReminder.alertDaysBefore || 60);
+          overlay.querySelector('#rm-email').value = existingReminder.notifyEmail || '';
+        } else {
+          overlay.querySelector('#rm-alert').value = '60';
+          overlay.querySelector('#rm-visibility').value = 'public';
+        }
+
+        overlay.querySelector('#rm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
+
+        overlay.querySelector('#rm-save').addEventListener('click', async () => {
+          const title = overlay.querySelector('#rm-title').value.trim();
+          const description = overlay.querySelector('#rm-desc').value.trim();
+          const eventDate = overlay.querySelector('#rm-date').value;
+          const recurrence = overlay.querySelector('#rm-recurrence').value;
+          const visibility = overlay.querySelector('#rm-visibility').value;
+          const alertDaysBefore = overlay.querySelector('#rm-alert').value;
+          const notifyEmail = overlay.querySelector('#rm-email').value.trim();
+          const errEl = overlay.querySelector('#rm-error');
+          errEl.style.display = 'none';
+
+          if (!title || !eventDate) {
+            errEl.textContent = 'Title and date are required.';
+            errEl.style.display = 'block';
+            return;
+          }
+
+          const session = getSession();
+          const saveBtn = overlay.querySelector('#rm-save');
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving…';
+
+          const payload = {
+            token: session.token, title, description, eventDate,
+            recurrence, visibility, alertDaysBefore, notifyEmail
+          };
+          const res = isEdit
+            ? await api('updateReminder', Object.assign({ id: existingReminder.id }, payload))
+            : await api('addReminder', payload);
+
+          if (!res.ok) {
+            errEl.textContent = res.error || 'Could not save reminder.';
+            errEl.style.display = 'block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = isEdit ? 'Save changes' : 'Save reminder';
+            return;
+          }
+
+          overlay.remove();
+          resolve(true);
+        });
+      });
+    }
+
+    document.getElementById('add-reminder-btn').addEventListener('click', async () => {
+      const saved = await showAddReminderModal();
+      if (saved) loadReminders();
+    });
+
+    // Small on-brand confirm modal — resolves true/false based on choice.
+    function offerBiometricSaveModal(username) {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position:fixed; inset:0; background:rgba(15,23,42,0.45);
+          display:flex; align-items:center; justify-content:center;
+          z-index:9999; padding:20px;
+        `;
+        overlay.innerHTML = `
+          <div style="background:#fff; border-radius:14px; max-width:340px; width:100%;
+                      padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25);">
+            <div style="width:40px; height:40px; border-radius:10px; background:#eef2ff;
+                        display:flex; align-items:center; justify-content:center; margin-bottom:14px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f5fe8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 11a2 2 0 0 0-2 2c0 1.5-.3 3.5-.8 5"/>
+                <path d="M8 13a4 4 0 0 1 8 0c0 1.9-.2 3.9-.6 5.5"/>
+                <path d="M4 13a8 8 0 0 1 15.5-3"/>
+              </svg>
+            </div>
+            <h3 style="margin:0 0 6px; font-size:16px; color:#16213d;">Sign in with fingerprint next time?</h3>
+            <p style="margin:0 0 10px; font-size:13px; color:#5b6472; line-height:1.5;">
+              Skip typing your PIN on this device — use your fingerprint or Face ID instead.
+            </p>
+            <p style="margin:0 0 18px; font-size:12px; color:#9aa2b1; line-height:1.5;">
+              Only enable this on a personal device. Anyone who can unlock this device with
+              their own fingerprint will be able to sign in as ${username}.
+            </p>
+            <div style="display:flex; gap:8px;">
+              <button id="bio-yes" style="flex:1; background:#12244a; color:#fff; border:none;
+                padding:11px; border-radius:8px; font-weight:700; font-size:13.5px; cursor:pointer;">
+                Enable
+              </button>
+              <button id="bio-no" style="flex:1; background:#f3f5f9; color:#5b6472; border:none;
+                padding:11px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer;">
+                Not now
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#bio-yes').addEventListener('click', () => { overlay.remove(); resolve(true); });
+        overlay.querySelector('#bio-no').addEventListener('click', () => { overlay.remove(); resolve(false); });
+      });
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const pin = document.getElementById('login-pin').value;
+      const remember = document.getElementById('login-remember').checked;
+      const submitBtn = document.getElementById('login-submit');
+      const msg = document.getElementById('login-msg');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+      await doLogin(username, pin, remember, msg);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign in';
+    });
+
+    // Quick-unlock — biometric prompt, then reuses doLogin with the saved PIN.
+    document.getElementById('qu-unlock-btn').addEventListener('click', async () => {
+      const saved = getSavedLogin();
+      const btn = document.getElementById('qu-unlock-btn');
+      const msg = document.getElementById('qu-msg');
+      if (!saved) return;
+
+      btn.disabled = true;
+      const originalHTML = btn.innerHTML;
+      btn.textContent = 'Waiting for fingerprint…';
+
+      try {
+        await biometricAssert(saved.credentialId);
+        // Biometric succeeded — sign in with the saved credentials exactly
+        // as if they'd been typed. remember=true keeps the resulting
+        // session long-lived so this stays a genuinely "quick" unlock.
+        await doLogin(saved.username, saved.pin, true, msg);
+      } catch (err) {
+        msg.className = 'form-msg error';
+        msg.textContent = 'Fingerprint not recognized. Try again or use your PIN.';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    });
+
+    document.getElementById('qu-use-pin').addEventListener('click', () => {
+      document.getElementById('quick-unlock-view').style.display = 'none';
+      document.getElementById('full-login-view').style.display = 'block';
+      const saved = getSavedLogin();
+      if (saved) document.getElementById('login-username').value = saved.username;
+    });
+
+    document.getElementById('qu-different-account').addEventListener('click', () => {
+      clearSavedLogin();
+      localStorage.removeItem(LAST_UNLOCK_KEY);
+      document.getElementById('quick-unlock-view').style.display = 'none';
+      document.getElementById('full-login-view').style.display = 'block';
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-pin').value = '';
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      const confirmed = await showConfirmModal({
+        title: 'Log out?',
+        message: "You'll need to sign in again to access the safety systems.",
+        confirmLabel: 'Log out',
+        cancelLabel: 'Cancel',
+        danger: true
+      });
+      if (!confirmed) return;
+
+      const session = getSession();
+      clearSession();
+      localStorage.removeItem(LAST_UNLOCK_KEY);
+      showLogin();
+      // Invalidate the server-side token in the background — the user is
+      // already back at the login screen, no need to wait for this.
+      if (session && session.token) {
+        fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'logout', token: session.token })
+        }).catch(() => {});
+      }
+    });
+
+    document.getElementById('pin-toggle').addEventListener('click', () => {
+      const pinInput = document.getElementById('login-pin');
+      const btn = document.getElementById('pin-toggle');
+      const showing = pinInput.type === 'text';
+      pinInput.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'SHOW' : 'HIDE';
+    });
+
+    document.getElementById('forgot-pin-link').addEventListener('click', async () => {
+      const username = prompt('Enter your username to request a PIN reset:');
+      if (!username) return;
+      const res = await api('forgotPinRequest', { username });
+      alert(res.message || 'Request submitted.');
+    });
+
+    document.getElementById('signup-link').addEventListener('click', () => {
+      location.href = 'signup.html';
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/pftsafety/sw.js', { scope: '/pftsafety/' })
+          .catch(() => {});
+      });
+    }
+
+    // ---------- Install banner (unified Android + iOS) ----------
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone ||
+      window.matchMedia('(display-mode: standalone)').matches;
+
+    let _installPrompt = null;
+    const bannerWrap  = document.getElementById('install-banner-wrap');
+    const installBtn  = document.getElementById('ib-install-btn');
+    const dismissBtn  = document.getElementById('ib-dismiss');
+    const subEl       = document.getElementById('ib-sub');
+
+    function showInstallBanner() {
+      if (isStandalone) return; // already installed, never show
+      if (sessionStorage.getItem('pft_install_dismissed')) return;
+      bannerWrap.classList.add('show');
+    }
+
+    function hideInstallBanner() {
+      bannerWrap.classList.remove('show');
+      sessionStorage.setItem('pft_install_dismissed', '1');
+    }
+
+    dismissBtn.addEventListener('click', hideInstallBanner);
+
+    if (isIOS) {
+      // No native prompt exists on iOS — button just shows instructions.
+      subEl.textContent = 'Tap Share, then "Add to Home Screen"';
+      installBtn.querySelector('span').textContent = 'How?';
+      installBtn.addEventListener('click', () => {
+        alert('Tap the Share button (⬆️) in Safari\'s toolbar, then choose "Add to Home Screen".');
+      });
+      if (!isStandalone) {
+        setTimeout(showInstallBanner, 1500);
+      }
+    } else {
+      // Android/Chrome/Edge — capture the real install prompt.
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        _installPrompt = e;
+        showInstallBanner();
+      });
+
+      window.addEventListener('appinstalled', () => {
+        hideInstallBanner();
+        _installPrompt = null;
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!_installPrompt) return;
+        _installPrompt.prompt();
+        const { outcome } = await _installPrompt.userChoice;
+        if (outcome === 'accepted') {
+          _installPrompt = null;
+          bannerWrap.classList.remove('show');
+        }
+      });
+    }
+
+    // Fires the moment the page loads — regardless of whether the user is
+    // about to see the login form or already has a valid session. getApps
+    // and getSettings don't need a token, so there's no reason to wait for
+    // login to finish before starting this: by the time someone actually
+    // reaches the launcher (after typing a PIN, or a fingerprint tap), this
+    // has had a head start running in parallel with that, and the app grid
+    // + banner caches are often already warm even on a device that's never
+    // loaded this page before.
+    function preloadLauncherDataEarly() {
+      api('getLauncherData', {}).then(res => {
+        if (!res.ok) return;
+        if (res.apps) {
+          try { localStorage.setItem('pft_apps_cache', JSON.stringify(res.apps)); } catch (e) {}
+        }
+        if (res.settings) {
+          try { localStorage.setItem('pft_settings_cache', JSON.stringify(res.settings)); } catch (e) {}
+        }
+      }).catch(() => {});
+    }
+    preloadLauncherDataEarly();
+
+    // ---------- Login page enhancements ----------
+    function getGreeting() {
+      const h = new Date().getHours();
+      if (h < 12) return 'Good morning';
+      if (h < 17) return 'Good afternoon';
+      return 'Good evening';
+    }
+
+    (function applyLoginGreeting() {
+      const greeting = getGreeting();
+      const eyebrow = document.getElementById('brand-greeting');
+      if (eyebrow) eyebrow.textContent = greeting.toUpperCase();
+      const quGreeting = document.getElementById('qu-greeting');
+      if (quGreeting) quGreeting.textContent = greeting;
+
+      // Last unlock time on the quick-unlock screen.
+      const quLastLogin = document.getElementById('qu-last-login');
+      if (quLastLogin) {
+        const lastUnlock = localStorage.getItem(LAST_UNLOCK_KEY);
+        if (lastUnlock) {
+          const d = new Date(Number(lastUnlock));
+          const isToday = d.toDateString() === new Date().toDateString();
+          const timeStr = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+          const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+          quLastLogin.textContent = 'Last unlocked ' + (isToday ? 'today at ' + timeStr : dateStr + ' at ' + timeStr);
+        }
+      }
+    })();
+
+    // Animated floating dots on the brand panel — desktop only.
+    (function initBrandDots() {
+      const canvas = document.getElementById('brand-dots');
+      if (!canvas) return;
+      if (window.matchMedia('(max-width:640px)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const ctx = canvas.getContext('2d');
+      let W, H, dots, raf;
+
+      function resize() {
+        W = canvas.offsetWidth; H = canvas.offsetHeight;
+        canvas.width = W; canvas.height = H;
+      }
+
+      function makeDot() {
+        return {
+          x: Math.random() * W, y: Math.random() * H,
+          r: Math.random() * 1.5 + 0.5,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          a: Math.random() * 0.4 + 0.12
+        };
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        dots.forEach(d => {
+          d.x += d.vx; d.y += d.vy;
+          if (d.x < 0) d.x = W; if (d.x > W) d.x = 0;
+          if (d.y < 0) d.y = H; if (d.y > H) d.y = 0;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,' + d.a + ')';
+          ctx.fill();
+        });
+        raf = requestAnimationFrame(draw);
+      }
+
+      resize();
+      dots = Array.from({ length: 55 }, makeDot);
+      draw();
+      window.addEventListener('resize', resize);
+    })();
+
+    init();
+  </script>
+</body>
+</html>
