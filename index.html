@@ -993,6 +993,7 @@
     font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
   }
   .reminder-badge.soon { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .reminder-badge.past { background: rgba(100,116,139,0.12); color: #64748b; }
   .reminder-badge.public { background: var(--accent-dim); color: var(--accent); }
   .reminder-badge.yearly { background: rgba(22,163,74,0.1); color: #15803d; }
 
@@ -1094,15 +1095,26 @@
     .app-tile .desc { display: none; }
     .app-tile .arrow { display: none; }
 
+    .launcher-layout { flex-direction: column; align-items: stretch; padding: 0; gap: 0; }
+    .launcher-main { width: 100%; }
+
     .reminders-panel {
       box-sizing: border-box;
-      position: static;
+      position: fixed;
+      top: 61px; /* below topbar */
+      left: 0; right: 0;
+      bottom: calc(60px + env(safe-area-inset-bottom));
+      overflow-y: auto;
       max-height: none;
+      width: 100%;
       margin: 0;
       border-radius: 0;
       border-left: none;
       border-right: none;
-      display: none; /* shown via bottom nav JS */
+      border-top: none;
+      border-bottom: none;
+      display: none;
+      z-index: 50;
     }
     .reminders-panel.mobile-active {
       display: block;
@@ -2083,7 +2095,6 @@
     function switchMobileTab(tab) {
       _mobileActiveTab = tab;
 
-      // Update button states
       ['apps', 'reminders', 'profile'].forEach(t => {
         const btn = document.getElementById('mbn-' + t);
         if (btn) btn.classList.toggle('active', t === tab);
@@ -2093,17 +2104,17 @@
       const remindersPanel = document.querySelector('.reminders-panel');
       const profileSheet = document.getElementById('mobile-profile-sheet');
 
+      // Always hide all first
+      if (launcher) launcher.style.display = 'none';
+      if (remindersPanel) remindersPanel.classList.remove('mobile-active');
+      if (profileSheet) profileSheet.style.display = 'none';
+
       if (tab === 'apps') {
         if (launcher) launcher.style.display = 'block';
-        if (remindersPanel) remindersPanel.classList.remove('mobile-active');
-        if (profileSheet) profileSheet.style.display = 'none';
       } else if (tab === 'reminders') {
-        if (launcher) launcher.style.display = 'none';
         if (remindersPanel) remindersPanel.classList.add('mobile-active');
-        if (profileSheet) profileSheet.style.display = 'none';
       } else if (tab === 'profile') {
         if (launcher) launcher.style.display = 'block';
-        if (remindersPanel) remindersPanel.classList.remove('mobile-active');
         if (profileSheet) profileSheet.style.display = 'flex';
       }
     }
@@ -2243,7 +2254,8 @@
     // Shared markup for one reminder row — used by both the compact
     // sidebar (delete only) and the "Manage" modal (edit + delete).
     function buildReminderItemHTML(r, showEdit) {
-      const soon = r.daysUntil <= 14;
+      const isPast = r.daysUntil < 0;
+      const soon = !isPast && r.daysUntil <= 14;
       const dateLabel = new Date(r.nextOccurrence + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       const daysLabel = r.daysUntil === 0 ? 'Today' : r.daysUntil === 1 ? 'Tomorrow' : r.daysUntil < 0 ? 'Past' : `In ${r.daysUntil}d`;
       return `
@@ -2255,6 +2267,7 @@
                 <span>${dateLabel}</span>
                 <span>·</span>
                 <span>${daysLabel}</span>
+                ${isPast ? '<span class="reminder-badge past">Past</span>' : ''}
                 ${soon ? '<span class="reminder-badge soon">Soon</span>' : ''}
                 ${r.recurrence === 'yearly' ? '<span class="reminder-badge yearly">Yearly</span>' : ''}
               </div>
@@ -2318,32 +2331,31 @@
       });
     }
 
-    // Sidebar — only reminders inside their own alert window.
-    // Grouped by "This week / This month / Later" and updates the count badge.
+    // Sidebar — reminders inside their own alert window, grouped by time.
+    // Past reminders (date already passed) are separated into a collapsible
+    // "Past" chip at the bottom — they shouldn't dominate the active view
+    // but are accessible for reference without cluttering the main list.
     function renderReminders(reminders) {
       const list = document.getElementById('reminders-list');
       const badge = document.getElementById('reminders-count-badge');
-      const due = reminders.filter(r => r.due);
 
-      // Update count badge
+      const past    = reminders.filter(r => r.due && r.daysUntil < 0);
+      const active  = reminders.filter(r => r.due && r.daysUntil >= 0);
+
+      // Badge and mobile bell count only reflect active (not past) reminders
+      const activeCount = active.length;
       if (badge) {
-        if (due.length > 0) {
-          badge.textContent = due.length;
-          badge.style.display = 'inline-flex';
-        } else {
-          badge.style.display = 'none';
-        }
+        badge.textContent = activeCount;
+        badge.style.display = activeCount > 0 ? 'inline-flex' : 'none';
       }
-      // Also sync the bottom nav bell badge on mobile
-      syncMobileReminderBadge(due.length);
+      syncMobileReminderBadge(activeCount);
 
-      if (!due.length) {
+      if (!active.length && !past.length) {
         list.innerHTML = `
           <div class="reminders-empty">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-              <line x1="12" y1="2" x2="12" y2="2.5"/>
             </svg>
             <p>No due reminders</p>
             <p style="font-size:11px; margin-top:3px; color:var(--text-muted);">Tap + to add one, or Manage to see all.</p>
@@ -2351,27 +2363,50 @@
         return;
       }
 
-      // Group by time bracket
-      const week  = due.filter(r => r.daysUntil <= 7);
-      const month = due.filter(r => r.daysUntil > 7 && r.daysUntil <= 30);
-      const later = due.filter(r => r.daysUntil > 30);
+      // Group active by time bracket — past items excluded from these groups
+      const week  = active.filter(r => r.daysUntil <= 7);
+      const month = active.filter(r => r.daysUntil > 7 && r.daysUntil <= 30);
+      const later = active.filter(r => r.daysUntil > 30);
 
       let html = '';
-      if (week.length) {
-        html += '<div class="reminders-group-label">This week</div>';
-        html += week.map(r => buildReminderItemHTML(r, false)).join('');
+
+      if (!active.length) {
+        html += `<div class="reminders-empty" style="padding:16px 0 8px;">
+          <p style="margin:0; font-size:12.5px; color:var(--text-secondary);">No upcoming due reminders.</p>
+        </div>`;
+      } else {
+        if (week.length)  { html += '<div class="reminders-group-label">This week</div>'  + week.map(r => buildReminderItemHTML(r, false)).join(''); }
+        if (month.length) { html += '<div class="reminders-group-label">This month</div>' + month.map(r => buildReminderItemHTML(r, false)).join(''); }
+        if (later.length) { html += '<div class="reminders-group-label">Later</div>'       + later.map(r => buildReminderItemHTML(r, false)).join(''); }
       }
-      if (month.length) {
-        html += '<div class="reminders-group-label">This month</div>';
-        html += month.map(r => buildReminderItemHTML(r, false)).join('');
-      }
-      if (later.length) {
-        html += '<div class="reminders-group-label">Later</div>';
-        html += later.map(r => buildReminderItemHTML(r, false)).join('');
+
+      // Collapsible past chip
+      if (past.length) {
+        html += `
+          <div class="reminders-past-toggle" id="past-toggle" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:10px 0 6px; margin-top:8px; border-top:1px solid var(--border);">
+            <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Past (${past.length})</span>
+            <svg id="past-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted); transition:transform 0.2s;"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div id="past-list" style="display:none;">
+            ${past.map(r => buildReminderItemHTML(r, false)).join('')}
+          </div>
+        `;
       }
 
       list.innerHTML = html;
       wireDeleteButtons(list);
+
+      // Wire the past toggle
+      const pastToggle = list.querySelector('#past-toggle');
+      if (pastToggle) {
+        pastToggle.addEventListener('click', () => {
+          const pastList = list.querySelector('#past-list');
+          const icon = list.querySelector('#past-toggle-icon');
+          const open = pastList.style.display !== 'none';
+          pastList.style.display = open ? 'none' : 'block';
+          if (icon) icon.style.transform = open ? '' : 'rotate(180deg)';
+        });
+      }
     }
 
     // "Manage" modal — every reminder visible to the user (due or not),
