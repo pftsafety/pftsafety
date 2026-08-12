@@ -50,11 +50,31 @@
     min-height: 100vh;
     width: 100%;
     -webkit-font-smoothing: antialiased;
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent the whole page bouncing when a scrollable child hits its end */
+    overscroll-behavior: none;
     background-image:
       linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
     background-size: 48px 48px;
     background-position: left top;
+  }
+
+  /* Momentum scrolling on all scrollable panels */
+  .reminders-panel,
+  #reminders-list,
+  .app-grid {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Remove tap delay + accidental text selection on interactive elements */
+  button, a, .app-tile, .mbn-btn, .add-reminder-btn,
+  .reminder-item, .reminders-past-toggle {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -496,8 +516,45 @@
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.15s,
+                width 0.35s cubic-bezier(0.4,0,0.2,1),
+                border-radius 0.35s cubic-bezier(0.4,0,0.2,1),
+                padding 0.35s cubic-bezier(0.4,0,0.2,1);
     min-height: 48px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Morphed state — pill spinner */
+  .btn-primary.loading {
+    width: 52px !important;
+    border-radius: 26px !important;
+    padding: 15px 0 !important;
+    pointer-events: none;
+  }
+  .btn-primary.loading .btn-label { opacity: 0; }
+  .btn-primary.loading .btn-spinner { opacity: 1; }
+
+  .btn-label {
+    transition: opacity 0.2s;
+  }
+  .btn-spinner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  @keyframes btnSpin {
+    to { transform: rotate(360deg); }
+  }
     box-shadow: 0 8px 20px rgba(18,36,74,0.25);
   }
   .btn-primary:hover:not(:disabled) {
@@ -813,6 +870,7 @@
     position: relative;
     overflow: hidden;
     transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .app-tile:hover {
@@ -820,6 +878,27 @@
     box-shadow: 0 12px 26px -10px rgba(47,116,245,0.35);
     border-color: var(--accent);
     border-top-color: var(--accent);
+  }
+
+  /* Press/tap feedback — scale down slightly on active so the tile
+     feels physically "pushed" rather than just navigating away cold */
+  .app-tile:active {
+    transform: scale(0.97);
+    box-shadow: none;
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+
+  /* Ripple element injected by JS on tap */
+  .tile-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(47,116,245,0.15);
+    transform: scale(0);
+    animation: tileRipple 0.45s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes tileRipple {
+    to { transform: scale(4); opacity: 0; }
   }
 
   .app-tile .icon {
@@ -865,6 +944,53 @@
     transition: opacity 0.18s, transform 0.18s;
   }
   .app-tile:hover .arrow { opacity: 1; transform: translate(0,0); }
+
+  /* ---- Banner skeleton shimmer (shown before first real data) ---- */
+  @keyframes shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position:  600px 0; }
+  }
+  .sb-skeleton {
+    background: linear-gradient(135deg, #1e3a8a, #172554);
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    padding: 28px 48px;
+    gap: 32px;
+  }
+  .sb-skeleton-block {
+    border-radius: 6px;
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.06) 25%,
+      rgba(255,255,255,0.14) 50%,
+      rgba(255,255,255,0.06) 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  .sb-sk-main { width: 260px; height: 44px; }
+  .sb-sk-label { width: 160px; height: 10px; margin-bottom: 10px; }
+  .sb-sk-unit { width: 80px; height: 16px; }
+  .sb-sk-stat { display: flex; flex-direction: column; gap: 8px; }
+  .sb-sk-stat-val { width: 70px; height: 28px; }
+  .sb-sk-stat-lbl { width: 100px; height: 9px; }
+
+  /* ---- Navigation progress bar ---- */
+  #nav-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+    z-index: 9999;
+    width: 0%;
+    opacity: 0;
+    transition: width 0.25s ease, opacity 0.3s;
+    box-shadow: 0 0 8px rgba(47,116,245,0.6);
+    pointer-events: none;
+  }
+  #nav-progress.active {
+    opacity: 1;
+  }
 
   .app-empty-state {
     max-width: 1280px;
@@ -1253,6 +1379,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
 </head>
 <body>
+<div id="nav-progress"></div>
 
   <div class="topbar">
     <div class="brand">
@@ -1412,7 +1539,10 @@
               <label><input type="checkbox" id="login-remember"> Remember me</label>
               <a id="forgot-pin-link">Forgot PIN?</a>
             </div>
-            <button type="submit" class="btn-primary" id="login-submit">Sign in</button>
+            <button type="submit" class="btn-primary" id="login-submit">
+              <span class="btn-label">Sign in</span>
+              <span class="btn-spinner"></span>
+            </button>
             <div class="form-msg" id="login-msg"></div>
           </form>
 
@@ -1523,6 +1653,7 @@
           <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
         </a>
       `).join('');
+      attachTileRipples();
     }
 
     // Called whenever a fresh app list arrives (from cache or network) —
@@ -1830,8 +1961,20 @@
         renderBanner(cachedSettings, false); // instant — no cold-start wait visible
       } else {
         document.getElementById('stat-strip').innerHTML = `
-          <div class="safety-banner" style="min-height:96px; display:flex; align-items:center; padding-left:32px;">
-            <span style="color:rgba(255,255,255,0.5); font-size:13px;">Loading safety stats…</span>
+          <div class="sb-skeleton">
+            <div class="sb-sk-stat" style="flex:1;">
+              <div class="sb-skeleton-block sb-sk-label"></div>
+              <div class="sb-skeleton-block sb-sk-main"></div>
+              <div class="sb-skeleton-block sb-sk-unit" style="margin-top:4px;"></div>
+            </div>
+            <div class="sb-sk-stat">
+              <div class="sb-skeleton-block sb-sk-stat-lbl"></div>
+              <div class="sb-skeleton-block sb-sk-stat-val"></div>
+            </div>
+            <div class="sb-sk-stat">
+              <div class="sb-skeleton-block sb-sk-stat-lbl"></div>
+              <div class="sb-skeleton-block sb-sk-stat-val"></div>
+            </div>
           </div>
         `;
       }
@@ -1941,6 +2084,80 @@
       return lastUnlock < getDailyBoundary();
     }
 
+    // ---------- Haptic feedback ----------
+    // navigator.vibrate is mobile-only — silently ignored on desktop.
+    // Patterns: 'light' for confirms, 'medium' for successes, 'error' for failures.
+    function haptic(type) {
+      if (!navigator.vibrate) return;
+      if (type === 'light')  navigator.vibrate(8);
+      if (type === 'medium') navigator.vibrate(12);
+      if (type === 'error')  navigator.vibrate([10, 60, 10]);
+      if (type === 'success') navigator.vibrate([8, 40, 14]);
+    }
+
+    // ---------- App tile ripple ----------
+    // Attached after grid renders, gives each tile a material-style
+    // ink ripple on tap and fires a light haptic at the same moment.
+    // ---------- Navigation progress bar ----------
+    // Fires a thin blue line across the top of the screen when a tile is
+    // tapped, giving instant feedback between the tap and the new page
+    // appearing — the gap that otherwise feels like the app froze.
+    const navProgress = document.getElementById('nav-progress');
+    let _progressTimer = null;
+
+    function startNavProgress() {
+      if (!navProgress) return;
+      clearTimeout(_progressTimer);
+      navProgress.style.transition = 'none';
+      navProgress.style.width = '0%';
+      navProgress.classList.add('active');
+      // Force reflow so the width reset applies before re-enabling transition
+      void navProgress.offsetWidth;
+      navProgress.style.transition = 'width 0.8s cubic-bezier(0.1,0.5,0.5,1)';
+      navProgress.style.width = '85%'; // stops short — page load completes it
+    }
+
+    function finishNavProgress() {
+      if (!navProgress) return;
+      navProgress.style.transition = 'width 0.15s ease';
+      navProgress.style.width = '100%';
+      _progressTimer = setTimeout(() => {
+        navProgress.style.transition = 'opacity 0.3s';
+        navProgress.classList.remove('active');
+        setTimeout(() => { navProgress.style.width = '0%'; }, 300);
+      }, 150);
+    }
+
+    // Runs on every page load — if we're returning from a sub-app,
+    // complete the bar to signal the page is fully ready.
+    if (document.readyState === 'complete') {
+      finishNavProgress();
+    } else {
+      window.addEventListener('load', finishNavProgress);
+    }
+
+    function attachTileRipples() {
+      document.querySelectorAll('.app-tile').forEach(tile => {
+        if (tile.dataset.rippleAttached) return;
+        tile.dataset.rippleAttached = '1';
+        tile.addEventListener('pointerdown', e => {
+          haptic('light');
+          startNavProgress();
+          const rect = tile.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const ripple = document.createElement('span');
+          ripple.className = 'tile-ripple';
+          ripple.style.cssText = `
+            width:${size}px; height:${size}px;
+            left:${e.clientX - rect.left - size / 2}px;
+            top:${e.clientY - rect.top - size / 2}px;
+          `;
+          tile.appendChild(ripple);
+          ripple.addEventListener('animationend', () => ripple.remove());
+        });
+      });
+    }
+
     function markUnlockedNow() {
       localStorage.setItem(LAST_UNLOCK_KEY, String(Date.now()));
     }
@@ -2011,10 +2228,12 @@
         if (!res.ok) {
           msgEl.className = 'form-msg error';
           msgEl.textContent = res.error || 'Sign in failed.';
+          haptic('error');
           return false;
         }
         setSession({ token: res.token, username: res.username, role: res.role, expiresAt: res.expiresAt });
         markUnlockedNow();
+        haptic('success');
 
         if (res.forcePinChange) {
           location.href = 'change-pin.html';
@@ -2230,7 +2449,7 @@
           </div>
         `;
         document.body.appendChild(overlay);
-        overlay.querySelector('#cm-confirm').addEventListener('click', () => { overlay.remove(); resolve(true); });
+        overlay.querySelector('#cm-confirm').addEventListener('click', () => { haptic('medium'); overlay.remove(); resolve(true); });
         overlay.querySelector('#cm-cancel').addEventListener('click', () => { overlay.remove(); resolve(false); });
       });
     }
@@ -2677,13 +2896,9 @@
             return;
           }
 
+          haptic('success');
           overlay.remove();
           resolve(true);
-        });
-      });
-    }
-
-    document.getElementById('add-reminder-btn').addEventListener('click', async () => {
       const saved = await showAddReminderModal();
       if (saved) loadReminders();
     });
@@ -2742,10 +2957,10 @@
       const submitBtn = document.getElementById('login-submit');
       const msg = document.getElementById('login-msg');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Signing in…';
+      submitBtn.classList.add('loading');
       await doLogin(username, pin, remember, msg);
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign in';
+      submitBtn.classList.remove('loading');
     });
 
     // Quick-unlock — biometric prompt, then reuses doLogin with the saved PIN.
@@ -2761,11 +2976,10 @@
 
       try {
         await biometricAssert(saved.credentialId);
-        // Biometric succeeded — sign in with the saved credentials exactly
-        // as if they'd been typed. remember=true keeps the resulting
-        // session long-lived so this stays a genuinely "quick" unlock.
+        haptic('medium'); // biometric recognized — brief confirm before the API call
         await doLogin(saved.username, saved.pin, true, msg);
       } catch (err) {
+        haptic('error');
         msg.className = 'form-msg error';
         msg.textContent = 'Fingerprint not recognized. Try again or use your PIN.';
       } finally {
